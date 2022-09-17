@@ -1,0 +1,174 @@
+{% extends "front/base.html" %}
+{% block title %}勤怠詳細{% endblock %}
+
+
+{% block header %}
+{% endblock %}
+
+{% block content %}
+
+<div class="container2">
+    <div class="itemA">
+    </div>
+    <div class="itemB">
+        <table class="table-total">
+            <thead>
+                <tr>
+                    <th>日所定時間(h)</th><th>月所定時間(h)</th><th>稼働時間</th><th>時間外</th><th>所定日数</th><th>稼働日数</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>{{workhour_day}}</td>
+                    <td>{{workhour_month}}</td>
+                    <td>{{work_time_total.hour}}:{{work_time_total.minute|date:"i"}}</td>
+                    <td>{{extra_hour_total.hour}}:{{extra_hour_total.minute|date:"i"}}</td>
+                    <td>{{workday_month}}</td>
+                    <td>{{work_day_total}}</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+    <div class="itemC">
+        <div class="btn-select">
+            <a href="javascript:OnLinkClick();" id="btn_lastmonth" class="btnorg calender" name="btn_lastmonth">&lt;</a>
+            <a href="javascript:OnLinkClick();" id="btn_nextmonth" class="btnorg calender" name="btn_nextmonth">&gt;</a>
+        </div>
+        <div class="date">
+            {{year}}年{{month}}月
+        </div>
+        
+        <div class="btn-delete">
+            <form name="form_delete" action="javascript:OnLinkClick();">
+                <button class="delete_button" id="btn_delete" type="submit">初期化</button>
+            </form>
+        </div>
+    </div>
+    <div class="itemD">
+        <table>
+            <thead>
+                <tr>
+                    <th>保存</th>
+                    <th>日</th>
+                    <th>曜日</th>
+                    <th class='col-select'>勤怠区分</th>
+                    <th class='col-text'>作業内容</th>
+                    <th class='col-datetime'>始業</th>
+                    <th class='col-datetime'>終業</th>
+                    <th class='col-datetime'>休憩</th>
+                    <th class='col-datetime'>勤務時間</th>
+                    <th class='col-datetime'>時間外</th>
+                    <th class='col-num'>交通費</th>
+                    <th class='col-text'>備考</th>
+                    <th class='col-text-s'>システム備考</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for key, value in attend.items %}
+                    <form action="{% url 'front:attend_register_day' year month forloop.counter %}" method="POST">
+                        {% csrf_token %}
+                        {% if value.holiday == 1 %}
+                            <tr class="tr_detail_holiday">
+                        {% else %}
+                            <tr class="tr_detail_normal">
+                        {% endif %}
+                            
+                            <td><button type="submit" name="btn_save" value="{{ key }}">保存</button></td>
+                            <td>{{ key }}</td>
+                            <td>{{ value.weekday }}</td>
+                            <td>
+                                <select name="work_status">
+                                    {% for wrk in workstatus %}
+                                        {% if value.attend.work_status == wrk.id %}
+                                            <option value="{{wrk.id}}" selected>{{wrk.name_selection}}</option>
+                                        {% else %}
+                                            <option value="{{wrk.id}}">{{wrk.name_selection}}</option>
+                                        {% endif %}
+                                    {% endfor %}
+                                </select>
+                            </td>
+                            {% if value.attend.work_detail is None %}
+                                <td><input type="text" name="work_detail"></td>
+                            {% else %}
+                                <td><input type="text" name="work_detail" value={{value.attend.work_detail}}></td>
+                            {% endif %}
+
+                            <td><input type="time" class="time" name="work_start" min="00:00" max="23:59" value={{ value.attend.work_start|date:"H:i"}}></td>
+                            <td><input type="time" class="time" name="work_end" min="00:00" max="23:59" value={{ value.attend.work_end|date:"H:i"}}></td>
+                            <td><input type="time" class="time" name="work_off" min="00:00" max="23:59" value={{ value.attend.work_off|date:"H:i"}}></td>
+                            <td>{{ value.attend.work_time|date:"H:i"}}</td>
+                            <td>{{ value.attend.work_overtime|date:"H:i"}}</td>
+                            <td><input type="number" step="1" class="numeric" name="carfare" value={{value.attend.carfare}}></td>
+                            {% if value.attend.memo is None %}
+                                <td><input type="text" name="memo"></td>
+                            {% else %}
+                                <td><input type="text" name="memo" value={{value.attend.memo}}></td>
+                            {% endif %}
+                            {% if value.attend.sysmemo is None %}
+                                <td></td>
+                            {% else %}
+                                <td>{{value.attend.sysmemo}}</td>
+                            {% endif %}
+                        </tr>
+                    </form>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<script type="text/javascript">
+
+    document.getElementById("btn_nextmonth").addEventListener('click', OnLinkClick, false)
+    document.getElementById("btn_lastmonth").addEventListener('click', OnLinkClick, false)
+    document.getElementById("btn_delete").addEventListener('click', OnLinkClick, false)
+    
+    function OnLinkClick(e) {
+
+        btn_id = e.srcElement.id
+        url_base = '{{ url_base }}'
+        
+        // 現在表示中の年月
+        var dt = new Date({{ year }}, {{ month }}, 1, 0, 0, 0);
+        
+        switch (btn_id) {
+            case 'btn_nextmonth':
+                dt.setMonth(dt.getMonth() + 1);
+                window.location.href = url_base + "?year=" + dt.getFullYear() + "&month=" +  dt.getMonth()
+                break;
+            case 'btn_lastmonth':
+                dt.setMonth(dt.getMonth() - 1);
+                window.location.href = url_base + "?year=" + dt.getFullYear() + "&month=" +  dt.getMonth()
+                break;
+            case 'btn_delete':
+                value = window.confirm('当月分のデータを削除します。\n よろしいですか？');
+                if (value != true){
+                    break;
+                }
+
+                const form = document.createElement('form');
+                form.method = 'post'
+                form.action = url_base + '/delete'
+                const formValueYear = document.createElement("input")
+                formValueYear.value = {{ year }}
+                formValueYear.name = 'year'
+                const formValueMonth = document.createElement("input")
+                formValueMonth.value = {{ month }}
+                formValueMonth.name = 'month'
+                var childToken = document.createElement("div");
+                childToken.innerHTML = '{% csrf_token %}'
+                form.appendChild(formValueYear)
+                form.appendChild(formValueMonth)
+                form.appendChild(childToken)
+                
+                document.body.appendChild(form)
+                form.submit()
+
+            default:
+                console.log('no event difined');
+        }
+    }
+
+  
+</script>
+{% endblock %}

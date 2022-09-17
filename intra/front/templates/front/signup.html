@@ -1,0 +1,41 @@
+{% extends "front/base_account.html" %}
+{% block title %}新規登録{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h1>新規登録</h1>
+    <form method="post" action="{% url 'front:signup_register' %}">
+    {% csrf_token %}
+        {{ form.non_field_errors }}
+        {% for field in form %}
+            {{ field.label }}
+            <br>
+            {{ field }}
+            <br>
+            {{ field.error }}
+        {% endfor %}
+        <br>
+
+        
+        <input type="submit" class="btn btn-primary" value="登録" />
+
+
+
+
+
+
+
+
+        <a href="{% url 'front:top' %}" class="btn btn-primary">戻る</a>
+    </form>
+</div>
+{# エラーメッセージを表示 #}
+{% if form.errors %}
+    {% for field in form %}
+        {% for error in field.errors %}
+            <p>{{ error }}</p>
+        {% endfor %}
+     {% endfor %}
+{% endif %} 
+</form>
+{% endblock %}

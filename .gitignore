@@ -1,0 +1,7 @@
+intra/front/__pycache__
+intra/intra/__pycache__
+batch/log
+intra/mysql/
+*.pyc
+intra/front/migrations/*
+__pycache__

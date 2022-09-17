@@ -1,0 +1,13 @@
+{% extends "front/base.html" %}
+{% block title %}ホーム{% endblock %}
+
+{% block content %}
+    <p>{{ user.username }}さん、こんにちは。</p>
+    
+    {{ weather }}
+
+    改行
+    {% for key, value in weather.items %}
+    <br>{{ key }} is {{ value }}
+    {% endfor %}
+{% endblock %}

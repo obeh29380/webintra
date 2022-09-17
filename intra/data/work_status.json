@@ -1,0 +1,44 @@
+[
+    {
+        "name": "WORK",
+        "name_selection": "出勤",
+        "use": true,
+        "holiday": false,
+        "memo": ""
+    },
+    {
+        "name": "WORK_ON_HOME",
+        "name_selection": "在宅",
+        "use": true,
+        "holiday": false,
+        "memo": ""
+    },
+    {
+        "name": "HOLIDAY",
+        "name_selection": "休日",
+        "use": true,
+        "holiday": true,
+        "memo": ""
+    },
+    {
+        "name": "HOLIDAY_COUNTRY",
+        "name_selection": "祝日",
+        "use": true,
+        "holiday": true,
+        "memo": ""
+    },
+    {
+        "name": "HOLIDAY_COMPANY",
+        "name_selection": "会社休",
+        "use": true,
+        "holiday": true,
+        "memo": ""
+    },
+    {
+        "name": "HOLIDAY_SALARY",
+        "name_selection": "有給",
+        "use": true,
+        "holiday": true,
+        "memo": ""
+    }
+]

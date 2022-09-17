@@ -1,0 +1,165 @@
+* {
+  margin-top: 0px;
+}
+
+header {
+  position: fixed;
+  font-size: 0;
+  width: 100%;
+  height: 80px;
+  background-color: white;
+  z-index: 1;
+  top: 0;
+}
+
+nav .logo {
+  background-color: white;
+}
+
+nav .nav-main {
+  display: flex;
+  flex-direction: row;
+  width: 100%;
+  background-color: white;
+}
+
+nav .linklist {
+  margin-top: 15px;
+  margin-bottom: 10px;
+}
+
+nav .nav-right {
+  margin: 15px 0 10px auto;
+  display: flex;
+  flex-direction: row;
+  vertical-align: middle;
+  width: 400px;
+}
+
+.disp-table {
+  display: table;
+}
+
+nav .nav-right .userid {
+  display: table-cell;
+  border-color: green;
+  color: brown;
+  width: 150px;
+  font-size: 20px;
+  text-align: left;
+  vertical-align: middle;
+  padding-left: 10px;
+}
+
+nav .nav-right .user-image-frame {
+  display: table-cell;
+  width: 50px;
+  height: 50px;
+  vertical-align: middle;
+}
+
+nav .nav-right .user-image-frame img {
+  width: 95%;
+  height: 95%;
+  border-radius: 50%
+}
+
+nav .nav-right .btn-logout {
+  display: table-cell;
+  width: 120px;
+  vertical-align: middle;
+}
+
+#view-clock {
+  width: 100px;
+  font-size: 15px;
+}
+
+nav a {
+  line-height: 50px;
+  height: 85%;
+  width: 100px;
+  font-size: 15px;
+  display: inline-block;
+  position: relative;
+  text-decoration: none;
+  text-align: center;
+  cursor: pointer;
+}
+
+nav a.navimg {
+  background: white;
+  margin-left: auto;
+  margin-right: auto;
+  position: relative;
+}
+
+nav a.navimg img {
+  width: 60px;
+  height: 60px;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  margin: -25px 0 0 -25px;
+}
+
+nav a.navlink {
+  color: black;
+}
+
+nav a.navlink:hover {
+  background: skyblue;
+}
+
+nav a.navlink_logout {
+  background: green;
+  color: white;
+  border: 1px solid green;
+  border-color: green;
+  float: right;
+}
+
+nav .navlink_logout:hover {
+  background: white;
+  color: green;
+  border: 1px solid green;
+  border-color: green;
+}
+
+
+nav .animation {
+  position: absolute;
+  height: 100%;
+  top: 0;
+  z-index: 0;
+  transition: all .5s ease 0s;
+  border-radius: 8px;
+}
+
+.container {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  background-color: white;
+}
+
+.container-route {
+  height: 20px;
+  width: 100%;
+  background-color: rgb(201, 206, 201);
+  border-color: rgb(68, 70, 68);
+}
+
+footer {
+  margin-bottom: 10px;
+  position: fixed;
+  bottom: 0;
+  background-color: chartreuse;
+  width: 100%;
+  height: 50px;
+}
+
+.content-main {
+  width: 100%;
+  margin-top: 130px;
+}

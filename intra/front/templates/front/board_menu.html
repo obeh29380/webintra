@@ -1,0 +1,54 @@
+{% extends "front/base.html" %}
+{% load static %}
+{% block title %}掲示板一覧{% endblock %}
+
+{% block header %}
+
+{% endblock %}
+
+{% block content %}
+
+
+<a href="{% url 'front:board_detail' 0 %}" class="button">新規</a>
+<div class="board-whole_wrap">
+  <div class="container-board">
+    <div class="item-menu">
+      <div class="logbox-menu">
+        menu配置予定
+      </div>
+    </div>
+    <div class="item-board">
+      <div class="logbox-board">
+        <div class="container-grid-boardlist">
+          {% for d in data %}
+          <div class="grid-item">
+            <div class="grid-item image">
+              <img src="{% static 'images/head.jpg' %}" alt="Home">
+            </div>
+            
+            <div class="grid-item describe">
+              <div>
+                <h1 class="board-title">{{d.title}}</h1>
+                {% comment %} <a href="{% url 'front:board_detail' d.id %}" class="btn btn-primary">詳細</a> {% endcomment %}
+            <a href="javascript:void(0);" onclick="window.open('{% url 'front:board_detail' d.id %}','subwin','width=700,height=800');">詳細</a>
+            <p>{{d.detail}}</p>
+                いいね(5) comment(10)
+              </div>
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+
+
+
+
+
+
+
+{% endblock %}

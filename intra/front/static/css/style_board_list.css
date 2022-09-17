@@ -1,0 +1,22 @@
+
+/* board */
+.container-grid-3-n {
+  display: grid;
+  grid-template-columns: repeat(3,300px);
+  grid-template-rows: auto;
+  gap: 20px;
+  text-align: center;
+  border-radius: 5%;
+}
+.grid-item {
+  background-color: burlywood;
+  border: 1px solid black;
+}
+.grid-item .describe{
+  text-align: left;
+  margin: 2%;
+  border: none;
+}
+.grid-item .image{
+  border: none;
+}

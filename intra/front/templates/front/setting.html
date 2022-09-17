@@ -1,0 +1,42 @@
+{% extends "front/base.html" %}
+{% block title %}設定{% endblock %}
+
+{% block header %}
+
+{% endblock %}
+
+{% block content %}
+
+
+<div class="row">
+    <div class="col-md-auto px-5">
+        <H1>MENU</H1>
+    </div>
+</div>
+<div class="row">
+    <div class="col-md-auto px-5">
+
+        - <a href="{% url 'front:setting_work_status' %}" >勤怠区分設定</a><br><br>
+        - <a href="{% url 'front:setting_holiday' %}" >休日設定</a><br><br>
+        - <a href="{% url 'front:setting_user' %}" >ユーザ設定</a><br><br>
+        - <a href="{% url 'front:setting_approval_format' 0  %}" >決裁フォーマット設定</a><br><br>
+
+    </div>
+</div>
+    
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+{% endblock %}

@@ -1,0 +1,126 @@
+{% extends "front/base.html" %}
+{% block title %}勤怠区分設定{% endblock %}
+
+{% block header %}
+
+{% endblock %}
+
+{% block content %}
+
+
+<div class="row">
+    <form action="?" method="POST">
+        {% csrf_token %}
+        <div class="col-md-auto px-5">
+            <table class="table table-bordered table-sm table-responsive border-success" border="1">
+                <thead class="table-active" align="center" height="35">
+                    <tr>
+                        <th width='10'>削除</th><th>区分</th><th>区分名</th><th>プルダウン表示</th><th>使用可否</th><th>休日指定</th><th width='300'>備考</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for key,value in data.items %}
+                            
+                        {% if value.readonly == True %}
+                            <tr bgcolor="#afeeee" >
+                                <td><input readonly='true' type="checkbox" name="delete_{{ forloop.counter }}"></td>
+                                <td>{{ value.workStatus.status }}</td>
+                                <td>{{ value.workStatus.name }}</td>
+                                <td>{{ value.workStatus.name_selection }}</td>
+                                <td>
+                                    {%if value.workStatus.use == True %}
+                                        使用可
+                                    {%else%}
+                                        不使用
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {%if value.workStatus.holiday == True %}
+                                        休日
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {%if value.workStatus.memo != None %}
+                                        {{ value.workStatus.memo }}
+                                    {% endif %}
+                                </td>
+                            </tr>
+                        {% else %}
+                            <tr>
+                                <td><input style="width:100%; box-sizing:border-box" type="checkbox" name="delete_{{ forloop.counter }}"></td>
+                                <td><input style="width:100%; box-sizing:border-box" type="text" name="status_{{ forloop.counter }}" value={{ value.workStatus.status }}></td>
+                                <td><input style="width:100%; box-sizing:border-box" type="text" name="name_{{ forloop.counter }}" value={{ value.workStatus.name }}></td>
+                                <td><input style="width:100%; box-sizing:border-box" type="text" name="name_selection_{{ forloop.counter }}" value={{ value.workStatus.name_selection }}></td>
+                                <td>
+                                    <select style="width:100%; box-sizing:border-box" name="use_{{ forloop.counter }}">
+                                        {%if value.workStatus.use == True %}
+                                            <option value="True" selected>使用可</option>
+                                            <option value="False">不使用</option>
+                                        {%else%}
+                                            <option value="True">使用可</option>
+                                            <option value="False" selected>不使用</option>
+                                        {% endif %}
+                                    </select>
+                                </td>
+                                <td>
+                                    <select style="width:100%; box-sizing:border-box" name="holiday_{{ forloop.counter }}">
+                                        {%if value.workStatus.holiday == True %}
+                                            <option value="False"></option>
+                                            <option value="True" selected>休日</option>
+                                        {%else%}
+                                            <option value="False" selected></option>
+                                            <option value="True">休日</option>
+                                        {% endif %}
+                                    </select>
+                                </td>
+                                <td>
+                                        {%if value.workStatus.memo == None %}
+                                            <input style="width:100%; box-sizing:border-box" type="text" name="memo_{{ forloop.counter }}" ></td>
+                                        {%else%}
+                                            <input style="width:100%; box-sizing:border-box" type="text" name="memo_{{ forloop.counter }}" value={{ value.workStatus.memo }}></td>
+                                        {% endif %}
+                                </td>
+                            </tr>
+                        {% endif %}
+                    {% endfor %}
+                    {% for d in counter %}
+                        {% if forloop.counter <= 5 %}
+                        <tr>
+                            <td></td>
+                            <td><input style="width:100%; box-sizing:border-box" type="text" name="status_add_{{ forloop.counter }}"></td>
+                            <td><input style="width:100%; box-sizing:border-box" type="text" name="name_add_{{ forloop.counter }}"></td>
+                            <td><input style="width:100%; box-sizing:border-box" type="text" name="name_selection_add_{{ forloop.counter }}"></td>
+                            <td>
+                                <select style="width:100%; box-sizing:border-box" name="use_add_{{ forloop.counter }}">
+                                    <option value="True" selected>使用可</option>
+                                    <option value="False">不使用</option>
+                                </select>
+                            </td>
+                            <td>
+                                <select style="width:100%; box-sizing:border-box" name="holiday_add_{{ forloop.counter }}">
+                                    <option value="False" selected></option>
+                                    <option value="True">休日</option>
+                                </select>
+                            </td>
+                            <td><input style="width:100%; box-sizing:border-box" type="text" name="memo_add_{{ forloop.counter }}"></td>
+                        </tr>
+                        {% endif %}
+                    {% endfor %}
+                </tbody>
+            </table>
+            <br>
+            <button type="submit" class="btn btn-primary">保存</button>
+        </div>
+    </form>
+</div>
+
+
+
+
+
+
+
+
+
+
+{% endblock %}

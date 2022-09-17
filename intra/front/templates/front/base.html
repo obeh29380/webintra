@@ -1,0 +1,99 @@
+<!doctype html>
+{% load static %}
+<html lang="ja">
+  <head>
+    <link rel="stylesheet" href="{% static 'css/navbar.css' %}">
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    <title>{% block title %}{% endblock %}</title>
+
+    {% block header %}{% endblock %}
+  </head>
+    {% block header2 %}{% endblock %}
+  <body>
+
+
+    <script src="https://code.jquery.com/jquery-3.2.1.min.js" integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4=" crossorigin="anonymous"></script>
+    <script src="{% static 'javascript/common.js' %}"></script>
+
+      <header>
+        <nav>
+          <div class="nav-main">
+            <div class="logo">
+              <a href="{% url 'front:home' %}" class="navimg">
+                <img src="{% static 'images/head.jpg' %}" alt="Home">
+              </a>
+            </div>
+            <div class="linklist">
+              <a id="{% url 'front:home' %}" class="navlink" href="{% url 'front:home' %}">Home</a>
+              <a id="{% url 'front:attend' %}" class="navlink" href="{% url 'front:attend' %}">勤怠入力</a>
+              <a id="{% url 'front:board_menu' %}" class="navlink" href="{% url 'front:board_menu' %}">掲示板</a>
+
+              <a id="{% url 'front:approval' %}" class="navlink" href="{% url 'front:approval' %}">決裁</a>
+              <a id="{% url 'front:chat' %}" class="navlink" href="{% url 'front:chat' %}">チャット</a>
+
+              <a id="{% url 'front:tools' %}" class="navlink" href="{% url 'front:tools' %}">Tools</a>
+              <a id="{% url 'front:setting' %}" class="navlink" href="{% url 'front:setting' %}">設定</a>
+            </div>
+            <div class="nav-right">
+              {% if not page_signup and not page_login %}
+                <div class="disp-table">
+                  <div class="user-image-frame">
+                    <img class="user-image" src="{% static 'images/user_image_sample.jpg' %}">
+                  </div>
+                </div>
+                <div class="disp-table">
+                  <div class="userid">
+                    {{ request.user }}
+                  </div>
+                </div>
+                  <div class="disp-table">
+                    <div class="btn-logout">
+                    <a href="{% url 'front:logout' %}" class="navlink_logout">ログアウト</a>
+                  </div>
+                </div>
+                {% endif %}
+            </div>
+          </div>
+        </nav>
+        <div class="container-route">
+          <span id="view-clock"></span>
+        </div>
+      </header>
+      
+      <div class="content-main">
+      {% block content %}{% endblock %}
+      </div>
+    
+      <footer>
+        <div class="copyright">
+          made by terayama
+        </div>
+        <div class="version">
+          v1.1.0
+        </div>
+
+
+      </footer>
+
+      <script type="text/javascript">
+        // 現在のページに対応するナビゲーションバーの項目の背景色を設定
+        var current_page = document.getElementById("{{ request.path }}");
+        current_page.style.background = "#E6E6E6";
+        
+        //今日の日付データを変数に格納
+        var today=new Date(); 
+
+        //年・月・日・曜日を取得
+        var year = today.getFullYear();
+        var month = today.getMonth()+1;
+        var week = today.getDay();
+        var day = today.getDate();
+
+        timerID = setInterval('clock()',500); //0.5秒毎にclock()を実行
+
+        function clock() {
+            document.getElementById("view-clock").innerHTML = getNow();
+        }
+      </script>
+  </body>
+</html>

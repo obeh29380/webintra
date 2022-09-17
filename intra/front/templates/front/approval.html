@@ -1,0 +1,139 @@
+{% extends "front/base.html" %}
+{% block title %}決裁{% endblock %}
+
+{% block header %}
+
+{% endblock %}
+
+{% block content %}
+
+
+<br>
+<div class="row">
+    <div class="col-md-auto px-5">
+        <H1>要承認(自分の承認待ち)</H1>
+    </div>
+</div>
+<div class="row">
+    <form action="?" method="POST">
+        {% csrf_token %}
+        <div class="col-md-auto px-5">
+            <table class="table table-bordered table-sm border-success" border="1">
+                <thead class="table-active" align="center" height="35">
+                    <tr>
+                        <th width="30"></th><th width="200">title</th><th width="130">起草者</th><th width="130">上申日</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for key, value in need_check.items %}
+                        <tr>
+                            <td align="center"><a href="{% url 'front:approval_check' value.id %}" class="btn btn-primary">確認</a></td>
+                            <td>{{value.title}}</td>
+                            <td>{{value.userid}}</td>
+                            <td>{{value.date}}</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </form>
+</div>
+
+<br>
+<br>
+<div class="row">
+    <div class="col-md-auto px-5">
+        <H1>MY決裁(未完了)</H1>
+    </div>
+</div>
+<div class="row">
+    <form action="?" method="POST">
+        {% csrf_token %}
+        <div class="col-md-auto px-5">
+            <table class="table table-bordered table-sm border-success" border="1">
+                <thead class="table-active" align="center" height="35">
+                    <tr>
+                        <th width="60">ステータス</th><th width="300">title</th><th width="400">決裁ルート</th><th width="130">上申日</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for key, value in approval.items %}
+                        <tr>
+                            <td>{{ value.status }}</td>
+                            <td>{{ value.approval.title }}</td>
+                            <td>{% for route in value.route %}
+
+                                    {% if forloop.counter != 1 %}
+                                        →
+                                    {% endif %}
+
+                                    {% if route.status == 2 %}
+                                        ★{{route.userid}}
+                                    {% else %}
+                                        {{route.userid}}
+                                    {% endif %}
+
+                                {% endfor %}
+                            </td>
+                            <td>{{ value.approval.date }}</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            <br>
+            <a href="{% url 'front:new_approval' 0 %}" class="btn btn-primary" name='btn_new_approval' value='btn_new_approval'>新規作成</a>
+        </div>
+    </form>
+</div>
+
+<br>
+<br>
+<div class="row">
+    <div class="col-md-auto px-5">
+        <H1>MY決裁(完了)</H1>
+    </div>
+</div>
+<div class="row">
+    <form action="?" method="POST">
+        {% csrf_token %}
+        <div class="col-md-auto px-5">
+            <table class="table table-bordered table-sm border-success" border="1">
+                <thead class="table-active" align="center" height="35">
+                    <tr>
+                        <th width="60">ステータス</th><th width="400">title</th><th width="400">決裁ルート</th><th width="130">上申日</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for key, value in approval_complete.items %}
+                        <tr>
+                            <td>{{ value.status }}</td>
+                            <td>{{ value.approval.title }}</td>
+                            <td>{% for route in value.route %}
+
+                                    {% if forloop.counter != 1 %}
+                                        →
+                                    {% endif %}
+
+                                    {% if route.status == 8 %}
+                                        ×{{route.userid}}
+                                    {% elif route.status == 9 %}
+                                        〇{{route.userid}}
+                                    {% else %}
+                                        {{route.userid}}
+                                    {% endif %}
+
+                                {% endfor %}
+                            </td>
+                            <td>{{ value.approval.date }}</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </form>
+</div>
+
+
+
+
+{% endblock %}

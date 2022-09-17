@@ -1,0 +1,76 @@
+{% extends "front/base.html" %}
+{% block title %}チャット{% endblock %}
+{% block head %}
+    {% load static %}
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link type="text/css" rel="stylesheet" href="{% static 'css/bmesse.css' %}" />
+{% endblock %}
+{% block content %}
+    <h1>チャット</h1>
+    
+    <div class="row">
+        <div class="col-md-auto px-5">
+                
+                <button id="button1" type="button">GETボタン</button>
+                <div id="resultGET"></div>
+
+            <form name="name_form1" action="{% url 'front:chat' %}" method="POST">
+                {% csrf_token %}
+                <button id="button1" type="submit">POSTボタン</button>
+            </form>
+            <a href="javascript:void(0);" onclick="window.open('{% url 'front:chat_room' 'room000001' %}','subwin','width=500,height=600');">room1</a>
+                <script>
+                    $('#button2').on('click', function(){
+                        // Ajax通信を開始
+                        $.ajax({
+                            url: "{% url 'front:chat' %}",
+                            method: "GET",
+                            // プレーンテキストを受信（他にはhtml、xml、script、json、jsonp等）
+                            dataType: 'text',
+                            // リクエストパラメータ「?param1=いろはに&param2=ほへと&param3=ちりぬるを」
+                            data: {
+                                param1: 'chattest'
+                            },
+                            timeout: 5000,
+                        })
+                        .done(function(data) {
+                            // 通信成功時の処理を記述
+                            $('ul').append(data);
+                        })
+                        .fail(function() {
+                            // 通信失敗時の処理を記述
+                            $('#resultGET').text('GET処理失敗.');
+                        });
+                    })
+
+                    $("form").submit( function(event) {
+                        event.preventDefault();
+                        var token = '{{csrf_token}}';
+                        // Ajax通信を開始
+                        $.ajax({
+                            url: "{% url 'front:chat' %}",
+                            method: "POST",
+                            headers: { "X-CSRFToken": token },
+                            // プレーンテキストを受信（他にはhtml、xml、script、json、jsonp等）
+                            dataType: 'text',
+                            // リクエストパラメータ「?param1=いろはに&param2=ほへと&param3=ちりぬるを」
+                            data: {
+                                param1: 'chattest'
+                            },
+                            timeout: 5000,
+                        })
+                        .done(function(data) {
+                            // 通信成功時の処理を記述
+                            $('#resultGET').append(data);
+                        })
+                        .fail(function() {
+                            // 通信失敗時の処理を記述
+                            $('#resultGET').text('GET処理失敗.');
+                        });
+                    })
+                </script>
+
+        </div>
+    </div>
+
+{% endblock %}

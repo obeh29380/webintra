@@ -1,0 +1,382 @@
+button {
+  position: relative;
+  font-size: 0;
+  line-height: 10px;
+  font-size: 15px;
+  display: inline-block;
+  position: relative;
+  text-align: center;
+  cursor: pointer;
+  border-radius: 5px;
+  color: rgb(220, 167, 167);
+  text-decoration: None;
+}
+
+button:hover {
+  background: #726666;
+}
+
+button.register {
+  background: white;
+  color: rgb(29, 119, 216);
+  border: 1px solid rgb(29, 119, 216);
+  float: center;
+  line-height: 20px;
+}
+
+button.register:hover {
+  background: rgb(29, 119, 216);
+  color: white;
+  border: 1px solid rgb(29, 119, 216);
+  border-color: rgb(29, 119, 216);
+  line-height: 20px;
+}
+
+.delete_button {
+  background: white;
+  color: red;
+  border: 1px solid red;
+  float: center;
+  line-height: 20px;
+}
+
+.delete_button:hover {
+  background: red;
+  color: white;
+  border: 1px solid red;
+  border-color: red;
+  line-height: 20px;
+}
+
+.col_button {
+  width: auto;
+}
+
+.button_table_add_row {
+  width: 40px;
+  height: 40px;
+  font-size: 20px;
+  background: white;
+  color: rgb(0, 217, 255);
+  border: 1px solid rgb(0, 217, 255);
+  float: right;
+  line-height: 20px;
+}
+
+.button_table_add_row:hover {
+  background: rgb(0, 217, 255);
+  color: white;
+  border: 1px solid rgb(0, 217, 255);
+  border-color: rgb(0, 217, 255);
+  line-height: 20px;
+}
+
+a .a-default {
+  position: relative;
+  font-size: 0;
+  line-height: 50px;
+  height: 50%;
+  font-size: 15px;
+  display: inline-block;
+  position: relative;
+  text-align: center;
+  cursor: pointer;
+  width: 50px;
+  border-radius: 10px;
+  color: rgb(220, 167, 167);
+  text-decoration: None;
+}
+
+a .a-default:hover {
+  background: #726666;
+}
+
+.btnorg {
+  position: relative;
+  font-size: 0;
+}
+
+.btnorg.calender {
+  line-height: 50px;
+  height: 100%;
+  font-size: 15px;
+  display: inline-block;
+  position: relative;
+  text-align: center;
+  cursor: pointer;
+  width: 50px;
+  border-radius: 10px;
+  color: #5f6368;
+  text-decoration: None;
+}
+
+.btnorg.calender:hover {
+  background: #E6E6E6;
+}
+
+.btnorg.save {
+  height: 50%;
+  font-size: 15px;
+  display: inline-block;
+  position: relative;
+  text-align: center;
+  cursor: pointer;
+  width: 50px;
+  border-radius: 10px;
+  color: #5f6368;
+}
+
+.btnorg.save:hover {
+  background: blue;
+}
+
+.btnorg.delete {
+  height: 50%;
+  font-size: 15px;
+  text-align: center;
+  cursor: pointer;
+  width: 50px;
+  border-radius: 10px;
+  color: #5f6368;
+}
+
+.btnorg.delete:hover {
+  background: red;
+}
+
+/* gridレイアウトについて、参考：https://shu-naka-blog.com/css/grid-row-column/ */
+.container1 {
+  height: 300px;
+  width: 400px;
+  position: absolute;
+  left: 50%;
+  top: 30%;
+  margin-top: -100px;
+  margin-left: -150px;
+  background-color: #a8b7c5;
+  text-align: center;
+}
+
+.container2 {
+  display: grid;
+  grid-template-rows: 100px 1fr;
+  grid-template-columns: 400px 1fr;
+}
+
+.itemA {
+  grid-row: 1 / 2;
+  grid-column: 1 / 2;
+}
+
+.itemB {
+  grid-row: 1 / 2;
+  grid-column: 2 / 3;
+}
+
+.itemC {
+  grid-row: 2 / 3;
+  grid-column: 1 / 2;
+  display: table;
+  margin-bottom: 5px;
+}
+
+.itemC .date {
+  display: table-cell;
+  vertical-align: middle;
+}
+
+.itemC .btn-select {
+  display: table-cell;
+  vertical-align: middle;
+  text-align: center;
+  width: 120px;
+}
+
+.itemC .btn-select :nth-child() {
+  width: 20px;
+  height: 20px;
+}
+
+.itemC .btn-delete {
+  display: table-cell;
+  vertical-align: middle;
+}
+
+
+.itemD {
+  grid-row: 3 / -1;
+  grid-column: 1 / -1;
+}
+
+/* table設定 */
+table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+}
+
+table th:first-child {
+  border-radius: 5px 0 0 0;
+}
+
+table th:last-child {
+  border-radius: 0 5px 0 0;
+  border-right: 1px solid #3c6690;
+}
+
+table th {
+  text-align: center;
+  color: white;
+  background: linear-gradient(#829ebc, #225588);
+  border-left: 1px solid #3c6690;
+  border-top: 1px solid #3c6690;
+  border-bottom: 1px solid #3c6690;
+  box-shadow: 0px 1px 1px rgba(255, 255, 255, 0.3) inset;
+  padding: 10px 0;
+  width: 10px;
+}
+
+/* 列（ヘッダ）定義 */
+table .col-select {
+  width: 70px;
+}
+
+table .col-datetime {
+  width: 10px;
+}
+
+table .col-text {
+  width: 300px;
+}
+
+table .col-text-s {
+  width: 100px;
+}
+
+table .col-num {
+  width: 60px;
+}
+
+.table-total th {
+  width: 100px;
+}
+
+table td {
+  text-align: center;
+  border-left: 1px solid #a8b7c5;
+  border-bottom: 1px solid #a8b7c5;
+  border-top: none;
+  box-shadow: 0px -3px 5px 1px #eee inset;
+  padding: 10px 0;
+}
+
+table td:last-child {
+  border-right: 1px solid #a8b7c5;
+}
+
+table td button {
+  height: 30px;
+  width: 95%;
+}
+
+table td input {
+  height: 30px;
+  width: 95%;
+}
+
+table td input.numeric {
+  width: 80%;
+  text-align: right;
+}
+
+table td input.time {
+  width: 80%;
+  text-align: right;
+}
+
+table td input.text {
+  width: 90%;
+  text-align: right;
+}
+
+table td select {
+  height: 30px;
+  width: 80%;
+}
+
+table tr:last-child td:first-child {
+  border-radius: 0 0 0 5px;
+}
+
+table tr:last-child td:last-child {
+  border-radius: 0 0 5px 0;
+}
+
+table tr {
+  height: 100%;
+}
+
+table .tr_detail_holiday {
+  background: #afeeee;
+}
+
+/* board */
+.board-whole_wrap {
+  width: 95%;
+}
+
+.container-board {
+  display: grid;
+  grid-template-rows: 500px;
+  grid-template-columns: 200px 1000px;
+}
+
+.container-board .item-menu {
+  grid-row: 1 / 2;
+  grid-column: 1 / 2;
+}
+
+.container-board .item-board {
+  grid-row: 1 / 2;
+  grid-column: 2 / 3;
+}
+
+.logbox-menu {
+  border: solid 1px red;
+  width: auto;
+  height: 500px;
+  padding: 0.5em;
+}
+
+.logbox-board {
+  border: solid 1px green;
+  width: 1000px;
+  height: 500px;
+  padding: 0.5em;
+  overflow: auto;
+}
+
+/* board_list */
+
+.container-grid-boardlist {
+  display: grid;
+  grid-template-columns: repeat(3, 300px);
+  grid-template-rows: auto;
+  gap: 20px;
+  text-align: center;
+}
+
+.container-grid-boardlist .grid-item {
+  background-color: burlywood;
+  border: 1px solid black;
+}
+
+.container-grid-boardlist .grid-item .describe {
+  text-align: left;
+  margin: 2%;
+  border: none;
+}
+
+.container-grid-boardlist .grid-item .image {
+  border: none;
+}

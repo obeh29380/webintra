@@ -1,0 +1,26 @@
+{% load static %}
+<head>
+  <link rel="stylesheet" href="{% static 'css/style.css' %}">
+</head>
+
+<body>
+  <div class="container-grid-boardlist">
+    {% for d in data %}
+      <div class="grid-item">
+        <div class="grid-item image">
+        <img src="{% static 'images/head.jpg' %}" alt="Home">
+      </div>
+        
+        <div class="grid-item describe">
+          <div>
+            <h1 class="board-title">{{d.title}}</h1>
+            <a href="{% url 'front:board_detail' d.id %}" class="btn btn-primary">詳細</a>
+            <p>{{d.detail}}</p>
+            いいね(5) comment(10)
+          </div>
+        </div>
+      </div>
+    {% endfor %}
+  </div>
+</body>
+

@@ -1,0 +1,84 @@
+{% extends "front/base.html" %}
+{% block title %}ユーザ設定{% endblock %}
+
+{% block header %}
+
+{% endblock %}
+
+{% block content %}
+
+
+<div class="row">
+    <form action="{% url 'front:setting_user' %}" method="POST">
+        {% csrf_token %}
+        <div class="col-md-auto px-5">
+            <table class="table table-bordered table-sm border-success" border="1">
+                <thead class="table-active" align="center" height="35">
+                    <tr>
+                        <th rowspan="2">userid</th><th rowspan="2">所定時間(日)</th><th colspan="7">所定休日</th><th rowspan="2">ランク</th>
+                    </tr>
+                    <tr>
+                        <th>月</th><th>火</th><th>水</th><th>木</th><th>金</th><th>土</th><th>日</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for key,value in data.items %}
+                        <tr>
+                            <td><input readonly='true' style="width:100%; box-sizing:border-box" type="text" name="userid_{{ forloop.counter }}" value={{ value.user.userid }}></td>
+                            <td><input style="width:100%; box-sizing:border-box" type="time" name="day_worktime_{{ forloop.counter }}" value={{ value.user.day_worktime|date:"H:i" }}></td>
+                            {% if value.user.regular_holiday.0 == 1 %}
+                                <td><input style="width:100%; box-sizing:border-box" type="checkbox" name="regular_holiday_0_{{ forloop.counter }}" checked></td>
+                            {% else %}
+                                <td><input style="width:100%; box-sizing:border-box" type="checkbox" name="regular_holiday_0_{{ forloop.counter }}"></td>
+                            {% endif %}
+                            {% if value.user.regular_holiday.1 == 1 %}
+                                <td><input style="width:100%; box-sizing:border-box" type="checkbox" name="regular_holiday_1_{{ forloop.counter }}" checked></td>
+                            {% else %}
+                                <td><input style="width:100%; box-sizing:border-box" type="checkbox" name="regular_holiday_1_{{ forloop.counter }}"></td>
+                            {% endif %}
+                            {% if value.user.regular_holiday.2 == 1 %}
+                                <td><input style="width:100%; box-sizing:border-box" type="checkbox" name="regular_holiday_2_{{ forloop.counter }}" checked></td>
+                            {% else %}
+                                <td><input style="width:100%; box-sizing:border-box" type="checkbox" name="regular_holiday_2_{{ forloop.counter }}"></td>
+                            {% endif %}
+                            {% if value.user.regular_holiday.3 == 1 %}
+                                <td><input style="width:100%; box-sizing:border-box" type="checkbox" name="regular_holiday_3_{{ forloop.counter }}" checked></td>
+                            {% else %}
+                                <td><input style="width:100%; box-sizing:border-box" type="checkbox" name="regular_holiday_3_{{ forloop.counter }}"></td>
+                            {% endif %}
+                            {% if value.user.regular_holiday.4 == 1 %}
+                                <td><input style="width:100%; box-sizing:border-box" type="checkbox" name="regular_holiday_4_{{ forloop.counter }}" checked></td>
+                            {% else %}
+                                <td><input style="width:100%; box-sizing:border-box" type="checkbox" name="regular_holiday_4_{{ forloop.counter }}"></td>
+                            {% endif %}
+                            {% if value.user.regular_holiday.5 == 1 %}
+                                <td><input style="width:100%; box-sizing:border-box" type="checkbox" name="regular_holiday_5_{{ forloop.counter }}" checked></td>
+                            {% else %}
+                                <td><input style="width:100%; box-sizing:border-box" type="checkbox" name="regular_holiday_5_{{ forloop.counter }}"></td>
+                            {% endif %}
+                            {% if value.user.regular_holiday.6 == 1 %}
+                                <td><input style="width:100%; box-sizing:border-box" type="checkbox" name="regular_holiday_6_{{ forloop.counter }}" checked></td>
+                            {% else %}
+                                <td><input style="width:100%; box-sizing:border-box" type="checkbox" name="regular_holiday_6_{{ forloop.counter }}"></td>
+                            {% endif %}
+                            <td><input style="width:100%; box-sizing:border-box" type="number" name="rank_{{ forloop.counter }}" value={{ value.user.rank }}></td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            <br>
+            <button type="submit" class="btn btn-primary">保存</button>
+        </div>
+    </form>
+</div>
+
+
+
+
+
+
+
+
+
+
+{% endblock %}

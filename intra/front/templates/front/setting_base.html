@@ -1,0 +1,55 @@
+{% extends "front/base.html" %}
+{% block title %}{{tab}}{% endblock %}
+
+{% block header %}
+
+{% endblock %}
+
+{% block content %}
+<br>
+
+<h1>{{title}}</h1>
+<form action="?" method="POST">
+    {% csrf_token %}
+    <table>
+        <thead>
+            <tr>
+                <th>削除</th>
+                {% for column in columns %}
+                    <th>{{column}}</th>
+                {% endfor %}
+            </tr>
+        </thead>
+        <tbody>
+            {% for d in data %}
+                <form name={{d.date}}>
+                    <tr>
+                        <td class="col_button"><button class="delete_button" type="submit">削除</button></td>
+                        <td><input type="date" name="date_{{ forloop.counter }}" value={{ d.date|date:"Y-m-d" }}></td>
+                        <td><input type="text" name="detail_{{ forloop.counter }}" value={{ d.detail }}></td>
+                    </tr>
+                </form>
+                {% endfor %}
+            <tr>
+                <td><button class="delete_button" type="submit">削除</button></td>
+                <td><input type="date" name="date_add_{{ forloop.counter }}"></td>
+                <td><input type="text" name="detail_add_{{ forloop.counter }}"></td>
+            </tr>
+        </tbody>
+    </table>
+    <button class="button_table_add_row" type="submit">+</button>
+    
+    <br>
+    <button type="submit">保存</button>
+</form>
+
+
+
+
+
+
+
+
+
+
+{% endblock %}

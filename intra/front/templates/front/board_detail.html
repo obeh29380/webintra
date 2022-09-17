@@ -1,0 +1,40 @@
+{% block title %}{{title}}{% endblock %}
+
+{% block header %}
+
+{% endblock %}
+
+{% block content %}
+
+
+
+
+<form action="?" method="POST">
+  {% csrf_token %}
+
+<div class="container-fluid">
+  <div class="row">
+    <div class="col-md-3 px-10">
+      
+      title:
+      <br>
+      <input type="text" name="title" name="title" value={{data.title}}>
+      <br>
+
+      詳細:
+      <br>
+      <textarea name="detail" cols="100" rows="50" name="detail">{{data.detail}}</textarea>
+      <br>
+
+      
+
+    </div>
+  </div>
+</div>
+<button type="submit" class="btn btn-primary">保存</button>
+</form>
+
+
+
+
+{% endblock %}

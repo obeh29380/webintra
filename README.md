@@ -2,15 +2,8 @@
 
 ## 構築手順
 
-1. DB作成
-    コンテナ内に入り、以下実行
-
+- intraディレクトリ内で以下実行  
+    以下コマンドでコンテナを起動すると、`init_app.sh` が実行され、DBのマイグレーションと初期データの登録が行われ、サーバが起動する。
     ```
-    python manage.py makemigrations
-    python manage.py migrate
-    ```
-
-2. 初期必須データ登録
-    ```
-    python manage.py register_workstatus data/work_status.json
+    docker compose up -d
     ```

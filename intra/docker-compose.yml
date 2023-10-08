@@ -24,14 +24,13 @@ services:
   app:
     image: django-web:latest
     container_name: App_intra
-    build: ./django
     environment:
       - DB_NAME=intra
       - DB_USER=root
       - DB_PASSWORD=root
       - DB_HOST=db
       - DB_PORT=3306
-    command: python manage.py runserver 0.0.0.0:8000
+    command: sh ./init_app.sh
     volumes:
       - .:/code
     ports:

@@ -11,4 +11,6 @@
     ```
 
 2. 初期必須データ登録
+    ```
     python manage.py register_workstatus data/work_status.json
+    ```

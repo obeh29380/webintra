@@ -1,15 +1,31 @@
+import json
 
 import jpholiday
-from .consts import MAP_WEEKDAY_K
-from .models import UserSetting, Holiday, WorkStatus
+
+from .consts import WEEKDAY
+from .models import (
+    UserSetting,
+    Holiday,
+    WorkStatus
+)
+
+FILE_WORK_STATUS = '/code/data/work_status.json'
+with open(FILE_WORK_STATUS, 'r') as f:
+    work_status_default = json.load(f)
 
 
 def get_work_status_id(status):
-    data = WorkStatus.objects.get(name=status)
-    return data.id
+    data = WorkStatus.objects.get_or_none(name=status)
+
+    if data:
+        return data.id
+
+    for i, work_status in enumerate(work_status_default):
+        if work_status["name"] == status:
+            return i
 
 
-def workStatus(date, user):
+def get_workStatus(date, user):
 
     # ユーザ毎の指定休日（初期値では土日）
     regHoli = UserSetting.objects.get(userid=user)
@@ -28,31 +44,31 @@ def workStatus(date, user):
                        'name': jpholiday.is_holiday_name(date),
                        }
     else:
-        if date.weekday() == MAP_WEEKDAY_K['MON'] and regHoli.mon_is_holiday:
+        if date.weekday() == WEEKDAY.MON and regHoli.mon_is_holiday:
             work_status = {'status': get_work_status_id('HOLIDAY'),
                            'name': None,
                            }
-        elif date.weekday() == MAP_WEEKDAY_K['TUE'] and regHoli.tue_is_holiday:
+        elif date.weekday() == WEEKDAY.TUE and regHoli.tue_is_holiday:
             work_status = {'status': get_work_status_id('HOLIDAY'),
                            'name': None,
                            }
-        elif date.weekday() == MAP_WEEKDAY_K['WED'] and regHoli.wed_is_holiday:
+        elif date.weekday() == WEEKDAY.WED and regHoli.wed_is_holiday:
             work_status = {'status': get_work_status_id('HOLIDAY'),
                            'name': None,
                            }
-        elif date.weekday() == MAP_WEEKDAY_K['THU'] and regHoli.thu_is_holiday:
+        elif date.weekday() == WEEKDAY.THU and regHoli.thu_is_holiday:
             work_status = {'status': get_work_status_id('HOLIDAY'),
                            'name': None,
                            }
-        elif date.weekday() == MAP_WEEKDAY_K['FRI'] and regHoli.fri_is_holiday:
+        elif date.weekday() == WEEKDAY.FRI and regHoli.fri_is_holiday:
             work_status = {'status': get_work_status_id('HOLIDAY'),
                            'name': None,
                            }
-        elif date.weekday() == MAP_WEEKDAY_K['SAT'] and regHoli.sat_is_holiday:
+        elif date.weekday() == WEEKDAY.SAT and regHoli.sat_is_holiday:
             work_status = {'status': get_work_status_id('HOLIDAY'),
                            'name': None,
                            }
-        elif date.weekday() == MAP_WEEKDAY_K['SUN'] and regHoli.sun_is_holiday:
+        elif date.weekday() == WEEKDAY.SUN and regHoli.sun_is_holiday:
             work_status = {'status': get_work_status_id('HOLIDAY'),
                            'name': None,
                            }

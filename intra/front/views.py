@@ -18,12 +18,11 @@ from django.views.generic import View
 from django.shortcuts import render
 import calendar
 import datetime
-from .consts import MAP_WEEKDAY, MAP_APPROVAL_STATUS, MAP_APPROVAL_STATUS_CODE
-from .common import workStatus, nvl, get_d_h_m_s, second2time
+from .consts import WEEKDAYS, MAP_APPROVAL_STATUS, MAP_APPROVAL_STATUS_CODE
+from .common import get_workStatus, nvl, get_d_h_m_s, second2time
 from .models import Attendance, WorkStatus, UserSetting, Approval, \
     Approval_route, Approval_format, Approval_format_route, Board, \
     Chat
-
 
 logger = getLogger(__name__)
 
@@ -35,7 +34,7 @@ def register_attendance_month(userid, year, month):
     for i in range(dayCnt):
 
         date = make_aware(datetime.datetime(year, month, i+1))
-        work_status = workStatus(date, userid)
+        work_status = get_workStatus(date, userid)
         if work_status['name']:
             sysmemo = '★' + work_status['name']
         else:
@@ -450,7 +449,7 @@ class AttendView(View):
 
         for obj in d:
             day += 1
-            weekday = MAP_WEEKDAY[obj.date.weekday()]
+            weekday = WEEKDAYS[obj.date.weekday()]
 
             work_time_total_t += datetime.timedelta(
                 hours=obj.work_time.hour, minutes=obj.work_time.minute)
@@ -459,7 +458,7 @@ class AttendView(View):
             if obj.work_time != datetime.time(0, 0, 0):
                 work_day_total += 1
 
-            work_status = workStatus(obj.date, request.user)
+            work_status = get_workStatus(obj.date, request.user)
             q = WorkStatus.objects.filter(
                 id=work_status['status'], holiday=True).count()
 

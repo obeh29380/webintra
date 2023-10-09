@@ -1,6 +1,17 @@
 from django.db import models
 
 
+class BaseManager(models.Manager):
+   def get_or_none(self, **kwargs):
+       """
+       検索にヒットすればそのモデルを、しなければNoneを返す。
+       """
+       try:
+           return self.get_queryset().get(**kwargs)
+       except self.model.DoesNotExist:
+           return None
+
+
 class Schedule(models.Model):
     userid = models.CharField(max_length=20, null=True)
     date = models.DateTimeField(auto_now_add=True)
@@ -38,6 +49,7 @@ class Attendance(models.Model):
 
 
 class WorkStatus(models.Model):
+    objects = BaseManager()
     id = models.AutoField(primary_key=True, editable=False)
     name = models.CharField(max_length=20, null=True)
     name_selection = models.CharField(max_length=3)

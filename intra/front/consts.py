@@ -1,22 +1,19 @@
+from enum import (
+    Enum,
+    auto
+)
 
 
-MAP_WEEKDAY = {0: '月',
-               1: '火',
-               2: '水',
-               3: '木',
-               4: '金',
-               5: '土',
-               6: '日',
-               }
+class WEEKDAY(Enum):
+    MON = 0
+    TUE = auto()
+    WED = auto()
+    THU = auto()
+    FRI = auto()
+    SAT = auto()
+    SUN = auto()
 
-MAP_WEEKDAY_K = {"MON": 0,
-                 "TUE": 1,
-                 "WED": 2,
-                 "THU": 3,
-                 "FRI": 4,
-                 "SAT": 5,
-                 "SUN": 6,
-                 }
+WEEKDAYS = ['月', '火', '水', '木', '金', '土', '日']
 
 MAP_DAY_STATUS = {"WORK": "01",
                   "HOLIDAY": "11",
@@ -24,11 +21,6 @@ MAP_DAY_STATUS = {"WORK": "01",
                   "HOLIDAY_COMPANY": "13",
                   "HOLIDAY_SALARY": "14",
                   }
-
-MAP_HOLIDAY = (MAP_DAY_STATUS["HOLIDAY"],
-               MAP_DAY_STATUS["HOLIDAY_COUNTRY"],
-               MAP_DAY_STATUS["HOLIDAY_COMPANY"],
-               )
 
 MAP_APPROVAL_STATUS = {0: "未承認",
                        2: "要承認",

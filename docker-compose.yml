@@ -1,0 +1,51 @@
+version: '3'
+services:
+  db:
+    container_name: db
+    image: mysql:8.0
+    platform: linux/amd64
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: intra
+      TZ: 'Asia/Tokyo'
+    command: mysqld --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
+    volumes:
+      - ./intra/my.cnf:/etc/mysql/conf.d/my.cnf:ro
+      - ./intra/log/mysql:/var/log/mysql
+      - volume-intra-db:/var/lib/mysql
+    expose:
+      - "3306"
+    restart: always
+    healthcheck:
+      test: mysqladmin ping -h 0.0.0.0 -u root -p$$MYSQL_ROOT_PASSWORD
+      interval: "1s"
+      timeout: "10s"
+      start_period: "30s"
+  app:
+    build:
+      context: .
+      dockerfile: ./intra/app/Dockerfile
+    container_name: App_intra
+    environment:
+      - DB_NAME=intra
+      - DB_USER=root
+      - DB_PASSWORD=root
+      - DB_HOST=db
+      - DB_PORT=3306
+    ports:
+      - "8085:8000"
+    volumes:
+      - ./intra:/code
+    command: >
+      bash -c "python /code/manage.py makemigrations &&
+      python /code/manage.py migrate &&
+      python /code/manage.py runserver 0.0.0.0:8000"
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: always
+    tty: true
+
+volumes:
+  volume-intra-db:
+    name: volume-intra-db

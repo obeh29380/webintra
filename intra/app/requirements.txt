@@ -1,0 +1,5 @@
+django==5.0a1
+pymysql==1.1.0
+djangorestframework==3.14.0
+requests==2.31.0
+jpholiday==0.1.8

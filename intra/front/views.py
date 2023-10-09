@@ -1,28 +1,59 @@
-import requests
-from logging import getLogger
-from django.db.models import Max
-from django.utils.timezone import make_aware
-from django.db.models import Min
-from django.contrib.auth.models import User
-from django.http import HttpResponse
-from django.contrib.auth.views import LoginView, LogoutView
-from django.contrib.auth.mixins import LoginRequiredMixin
-from django.contrib.auth import login
-from django.views.generic import TemplateView
-from django.views.generic.edit import CreateView
-from django.urls import reverse_lazy
-from . import forms
-from django.views.generic.edit import FormView
-from django.http import HttpResponseRedirect
-from django.views.generic import View
-from django.shortcuts import render
 import calendar
 import datetime
-from .consts import WEEKDAYS, MAP_APPROVAL_STATUS, MAP_APPROVAL_STATUS_CODE
-from .common import get_workStatus, nvl, get_d_h_m_s, second2time
-from .models import Attendance, WorkStatus, UserSetting, Approval, \
-    Approval_route, Approval_format, Approval_format_route, Board, \
+import os
+from logging import getLogger
+
+from django.db.models import (
+    Max,
+    Min
+)
+from django.utils.timezone import make_aware
+from django.contrib.auth.models import User
+from django.http import (
+    HttpResponse,
+    HttpResponseRedirect
+)
+from django.contrib.auth import login
+from django.contrib.auth.views import (
+    LoginView,
+    LogoutView
+)
+from django.contrib.auth.mixins import LoginRequiredMixin
+from django.views.generic import (
+    View,
+    TemplateView
+)
+from django.views.generic.edit import (
+    CreateView,
+    FormView
+)
+from django.shortcuts import render
+from django.urls import reverse_lazy
+import requests
+
+from . import forms
+from .common import (
+    get_workStatus,
+    nvl,
+    get_d_h_m_s,
+    second2time
+)
+from .consts import (
+    WEEKDAYS,
+    MAP_APPROVAL_STATUS,
+    MAP_APPROVAL_STATUS_CODE
+)
+from .models import (
+    Attendance,
+    WorkStatus,
+    UserSetting,
+    Approval,
+    Approval_route,
+    Approval_format,
+    Approval_format_route,
+    Board,
     Chat
+)
 
 logger = getLogger(__name__)
 
@@ -118,18 +149,22 @@ class HomeView(LoginRequiredMixin, TemplateView):
 
     def get(self, request):
 
-        # URLの設定
-        url = 'https://api.openweathermap.org/data/2.5/weather'
-        # パラメータの設定
-        param = {
-            "content-type": "application/json",
-            "lat": 34.587411,
-            "lon": 133.874795,
-            "appid": "7c4204c0eb11890647979d8f2005f71a"}
+        whether_token = os.getenv("weather_token")
+        data = None
 
-        # Responseオブジェクトの生成
-        res = requests.get(url, params=param)
-        data = res.json()
+        if whether_token:
+            # URLの設定
+            url = 'https://api.openweathermap.org/data/2.5/weather'
+            # パラメータの設定
+            param = {
+                "content-type": "application/json",
+                "lat": 34.587411,
+                "lon": 133.874795,
+                "appid": os.getenv("weather_token")}
+
+            # Responseオブジェクトの生成
+            res = requests.get(url, params=param)
+            data = res.json()
 
         params = {"message": "",
                   'weather': data

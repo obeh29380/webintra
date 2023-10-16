@@ -1,5 +1,9 @@
+import os
+import logging
+
 from urllib.parse import urlencode
 from django.views.generic import TemplateView, ListView
+from django.http.response import JsonResponse
 from django.urls import reverse_lazy
 from django.http import HttpResponseRedirect
 from django.views.generic import View
@@ -7,6 +11,7 @@ from django.shortcuts import render
 from django.contrib.auth.models import User
 from django.shortcuts import redirect
 from .models import WorkStatus, Holiday, UserSetting, Approval_format, Approval_format_route
+
 
 
 class SettingView(View):
@@ -101,9 +106,6 @@ class SettingBase(ListView):
 
 class SettingWorkStatusView(SettingBase):
 
-    model = WorkStatus
-    template_name = 'workstatus_list.html'
-
     def get(self, request):
 
         data = WorkStatus.objects.all()
@@ -114,114 +116,71 @@ class SettingWorkStatusView(SettingBase):
         params = {'tab': '勤怠区分設定',
                   'title': '勤怠区分設定',
                   'data': data,
-                  'counter': (1, 2, 3, 4, 5),
                   'columns': columns,
+                  'origin': os.getenv('ORIGIN'),
+                  'protocol': os.getenv('PROTO'),
+                  'port': os.getenv('PORT'),
                   }
         return render(request, "front/workstatus_list.html", params)
-
-    def _update(self, request):
-        """既存データ更新処理。
-
-        Returns:
-            エラー情報
-        """
-
-        # 更新処理
-        q = WorkStatus.objects.all()
-
-        # 既存更新分
-        cnt = q.count()
-
-        for i in range(cnt):
-            # システム設定の項目=readonlyの行は、POSTされない。(ただ表示しているだけで、input属性をつけていないため)
-            # これを処理しようとすると、MultiValueDictKeyErrorが起きる。
-
-            status = request.POST.get(f'status_{str(i+1)}', False)
-
-            if status == False:
-                # DB登録済みで、POSTパラメータに存在しないもの＝readonlyのものは処理しない。
-                continue
-
-            data = WorkStatus.objects.get(status=status)
-
-            if data.systemStatus:
-                continue
-
-            if 'delete_'+str(i+1) in request.POST:
-                data.delete()
-            else:
-                data.name = request.POST['name_'+str(i+1)]
-                data.name_selection = request.POST['name_selection_'+str(i+1)]
-                data.use = request.POST['use_'+str(i+1)]
-                data.holiday = request.POST['holiday_'+str(i+1)]
-                data.memo = request.POST['memo_'+str(i+1)]
-
-                # 各値チェック
-                # Todo:今は同期処理のため、再描画して入力した値が消えてしまう。非同期を実装し、これを回避したい。
-                if len(data.name_selection) > 3:
-
-                    return f'入力桁数オーバー:[name_selection]'
-
-                try:
-                    data.save()
-                except Exception as e:
-                    raise e
-
-    def _insert(self, request):
-        # 新規登録分
-        # 更新時にコードを変えたら重複する場合がある？
-        for i in range(5):
-            status = request.POST.get(f'status_add_{str(i+1)}')
-            name = request.POST['name_add_'+str(i+1)]
-            name_selection = request.POST['name_selection_add_'+str(i+1)]
-            use = request.POST['use_add_'+str(i+1)]
-            holiday = request.POST['holiday_add_'+str(i+1)]
-            memo = request.POST['memo_add_'+str(i+1)]
-
-            # 各値チェック
-            # Todo:今は同期処理のため、再描画して入力した値が消えてしまう。非同期を実装し、これを回避する。
-            if len(name_selection) > 3:
-
-                return f'入力桁数オーバー:[name_selection]'
-
-            if status:
-                b = WorkStatus(
-                    name=name,
-                    name_selection=name_selection,
-                    use=use,
-                    holiday=holiday,
-                    memo=memo,
-                )
-                try:
-                    b.save()
-                except Exception as e:
-                    raise e
 
     def post(self, request):
 
         # 初期設定
         self.callback_url = reverse_lazy('front:setting_work_status')
 
-        rtn = ''
-        try:
-            rtn = self._update(request)
-            if rtn:
-                raise
+        import json
+        datas = json.loads(request.body)
+        logging.debug(datas)
 
-            rtn = self._insert(request)
-            if rtn:
-                raise
+        name_selection = datas.get('name')
+        valid = datas.get('valid')
+        holiday = datas.get('holiday')
+        memo = datas.get('memo')
 
-        except Exception as e:
+        b = WorkStatus(
+            name="",
+            name_selection=name_selection,
+            use=valid,
+            holiday=holiday,
+            memo=memo,
+        )
+        b.save()
 
-            # パラメータのdictをurlencodeする。複数のパラメータを含めることも可能
-            parameters = urlencode({'error_massage': rtn})
+        data = {'result': True}
+        return JsonResponse(data)
 
-            # URLにパラメータを付与する
-            url = f'{self.callback_url}?{parameters}'
-            return redirect(url)
 
-        return HttpResponseRedirect(self.callback_url)  # リダイレクト
+class SettingWorkStatusViewById(SettingBase):
+
+    def delete(self, request, id):
+        obj = WorkStatus.objects.get(id=id)
+        obj.delete()
+
+        data = {'result': True}
+        return JsonResponse(data)
+
+    def post(self, request, id):
+
+        # データ存在チェック＆取得
+        obj = WorkStatus.objects.get(id=id)
+        # 初期設定
+        import json
+        datas = json.loads(request.body)
+        logging.debug(datas)
+        
+        name_selection = datas.get('name')
+        valid = datas.get('valid')
+        holiday = datas.get('holiday')
+        memo = datas.get('memo')
+
+        obj.name_selection = name_selection
+        obj.use = valid
+        obj.holiday = holiday
+        obj.memo = memo
+        obj.save()
+
+        data = {'result': True}
+        return JsonResponse(data)
 
 
 class SettingHolidayView(SettingBase):

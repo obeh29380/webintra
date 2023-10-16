@@ -32,6 +32,9 @@ services:
       - DB_PASSWORD=root
       - DB_HOST=db
       - DB_PORT=3306
+      - ORIGIN='localhost'
+      - PROTO='http'
+      - PORT=8085
     ports:
       - "8085:8000"
     volumes:

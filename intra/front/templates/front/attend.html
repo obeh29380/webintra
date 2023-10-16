@@ -37,12 +37,6 @@
         <div class="date">
             {{year}}年{{month}}月
         </div>
-        
-        <div class="btn-delete">
-            <form name="form_delete" action="javascript:OnLinkClick();">
-                <button class="delete_button" id="btn_delete" type="submit">初期化</button>
-            </form>
-        </div>
     </div>
     <div class="itemD">
         <table>
@@ -121,7 +115,6 @@
 
     document.getElementById("btn_nextmonth").addEventListener('click', OnLinkClick, false)
     document.getElementById("btn_lastmonth").addEventListener('click', OnLinkClick, false)
-    document.getElementById("btn_delete").addEventListener('click', OnLinkClick, false)
     
     function OnLinkClick(e) {
 

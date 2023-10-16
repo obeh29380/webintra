@@ -129,7 +129,7 @@ STATIC_URL = "static/"
 # https://docs.djangoproject.com/en/4.1/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
-
+DEFAULT_CHARSET = "utf-8"
 LOGIN_URL = "front:top"  # 追加
 LOGIN_REDIRECT_URL = "front:home"  # 追加
 LOGOUT_REDIRECT_URL = "front:top"  # 追加

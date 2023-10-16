@@ -11,7 +11,8 @@ from django.utils.timezone import make_aware
 from django.contrib.auth.models import User
 from django.http import (
     HttpResponse,
-    HttpResponseRedirect
+    HttpResponseRedirect,
+    JsonResponse,
 )
 from django.contrib.auth import login
 from django.contrib.auth.views import (
@@ -611,6 +612,107 @@ class AttendView(View):
         # attendance.save()
 
         return HttpResponseRedirect(success_url)  # リダイレクト
+
+
+def get_attendance_info(user_id, year, month):
+    """Attendanceテーブルの内容から、出勤簿の内容を返す
+    Array形式で、1日目、2日目・・・と各要素に１日分の情報をdictで含んでいる。
+    [{ 
+        'attend': obj,
+        'weekday': weekday,
+        'holiday': holiday,
+    }]
+    """
+
+    dayCnt = calendar.monthrange(year, month)[1]
+    date_from = str(year)+"-"+str(month)+"-"+"01"
+    date_to = str(year)+"-"+str(month)+"-"+str(dayCnt)
+
+    d = Attendance.objects.filter(
+        userid=user_id, date__gte=date_from, date__lte=date_to)
+
+    if d.count() == 0:
+        return None
+
+    workday_month = 0
+    attend_info = {}
+    work_time_total_t = datetime.timedelta(hours=0, minutes=0)
+    work_day_total = 0
+    extra_hour_total_t = datetime.timedelta(hours=0, minutes=0)
+
+    for obj in d:
+        weekday = WEEKDAYS[obj.date.weekday()]
+        work_time_total_t += datetime.timedelta(
+            hours=obj.work_time.hour, minutes=obj.work_time.minute)
+        extra_hour_total_t += datetime.timedelta(
+            hours=obj.work_overtime.hour, minutes=obj.work_overtime.minute)
+        if obj.work_time != datetime.time(0, 0, 0):
+            work_day_total += 1
+
+        work_status = get_workStatus(obj.date, request.user)
+        q = WorkStatus.objects.filter(
+            id=work_status['status'], holiday=True).count()
+
+        if q > 0:
+            holiday = 1
+        else:
+            holiday = 0
+            workday_month += 1
+
+        attend_info.append({'attend': obj,
+                        'weekday': weekday,
+                        'holiday': holiday,
+                        })
+
+    d, h, m, s = get_d_h_m_s(work_time_total_t)
+    work_time_total = {'hour': h+d*24,
+                        'minute': datetime.time(0, m)}
+
+    d, h, m, s = get_d_h_m_s(extra_hour_total_t)
+    extra_hour_total = {'hour': h+d*24,
+                        'minute': datetime.time(0, m)}
+
+    return {'attend_info': attend_info,
+            'work_time_total': work_time_total,
+            'extra_hour_total': extra_hour_total,
+            'workday_month': workday_month,
+            'work_day_total': work_day_total,
+            }
+
+def attend_info(request, *args, **kwargs) -> JsonResponse:
+
+    if request.user.is_anonymous:
+        print('未ログイン')
+        return JsonResponse(data=None)
+
+    now = make_aware(datetime.datetime.now())
+    month = int(request.GET.get("month", default=now.month))
+    year = int(request.GET.get("year", default=now.year))
+    attend_infos = get_attendance_info(request.user, year, month)
+
+    tmp = WorkStatus.objects.filter(use=True)
+    work_status = list(tmp.values())
+
+    print(request.user.id)
+    print(request.user)
+    userinfo = UserSetting.objects.get(userid=request.user)
+    worktime = userinfo.day_worktime.hour
+
+    params = {
+        'year': year,
+        'month': month,
+        'workstatus': work_status,
+        'attend': attend_infos['attend_info'],
+        'workday_month': attend_infos['workday_month'],
+        'workhour_day': worktime,
+        'workhour_month': attend_infos['workday_month'] * worktime,
+        'work_time_total': attend_infos['work_time_total'],
+        'work_day_total': attend_infos['work_day_total'],
+        'extra_hour_total': attend_infos['extra_hour_total'],
+        'url_base': f'{request.scheme}://{request.get_host()}{request.path}'
+    }
+
+    return JsonResponse(data=params)
 
 
 class AttendRegisterDay(View):

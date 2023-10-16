@@ -5,3 +5,4 @@ intra/mysql/
 *.pyc
 intra/front/migrations/*
 __pycache__
+.vscode/

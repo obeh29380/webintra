@@ -6,162 +6,216 @@
 {% endblock %}
 
 {% block content %}
+<hr>
+<div class="uk-container">
+    <div class="uk-grid-small uk-grid-match uk-text-center" uk-grid>
+        <div>
+            <div class="uk-card uk-card-default uk-card-body">
+                <div class="uk-card-body">
+                    <h2><a href="#" onclick="selectMonth('prev');" uk-icon="icon: chevron-left" id="prev-month"
+                        class="month_selector"></a>
+                    {{year}}年{{month}}月
+                    <a href="#" onclick="selectMonth('next');" uk-icon="icon: chevron-right" id="next-month"
+                        class="month_selector"></a></h2>
+                </div>
+            </div>
+        </div>
+        <div>
+            <div class="uk-card uk-card-default uk-card-body">
+                <table class="uk-table uk-table-small uk-table-middle uk-table-hover">
+                    <thead>
+                        <tr>
+                            <th class="uk-width-1-6">日所定時間(h)</th>
+                            <th class="uk-width-1-6">月所定時間(h)</th>
+                            <th class="uk-width-1-6">稼働時間</th>
+                            <th class="uk-width-1-6">時間外</th>
+                            <th class="uk-width-1-6">所定日数</th>
+                            <th class="uk-width-1-6">稼働日数</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>{{workhour_day}}</td>
+                            <td>{{workhour_month}}</td>
+                            <td>{{work_time_total.hour}}:{{work_time_total.minute|date:"i"}}</td>
+                            <td>{{extra_hour_total.hour}}:{{extra_hour_total.minute|date:"i"}}</td>
+                            <td>{{workday_month}}</td>
+                            <td>{{work_day_total}}</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
 
-<div class="container2">
-    <div class="itemA">
-    </div>
-    <div class="itemB">
-        <table class="table-total">
-            <thead>
-                <tr>
-                    <th>日所定時間(h)</th><th>月所定時間(h)</th><th>稼働時間</th><th>時間外</th><th>所定日数</th><th>稼働日数</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr>
-                    <td>{{workhour_day}}</td>
-                    <td>{{workhour_month}}</td>
-                    <td>{{work_time_total.hour}}:{{work_time_total.minute|date:"i"}}</td>
-                    <td>{{extra_hour_total.hour}}:{{extra_hour_total.minute|date:"i"}}</td>
-                    <td>{{workday_month}}</td>
-                    <td>{{work_day_total}}</td>
-                </tr>
-            </tbody>
-        </table>
-    </div>
-    <div class="itemC">
-        <div class="btn-select">
-            <a href="javascript:OnLinkClick();" id="btn_lastmonth" class="btnorg calender" name="btn_lastmonth">&lt;</a>
-            <a href="javascript:OnLinkClick();" id="btn_nextmonth" class="btnorg calender" name="btn_nextmonth">&gt;</a>
-        </div>
-        <div class="date">
-            {{year}}年{{month}}月
-        </div>
-    </div>
-    <div class="itemD">
-        <table>
-            <thead>
-                <tr>
-                    <th>保存</th>
-                    <th>日</th>
-                    <th>曜日</th>
-                    <th class='col-select'>勤怠区分</th>
-                    <th class='col-text'>作業内容</th>
-                    <th class='col-datetime'>始業</th>
-                    <th class='col-datetime'>終業</th>
-                    <th class='col-datetime'>休憩</th>
-                    <th class='col-datetime'>勤務時間</th>
-                    <th class='col-datetime'>時間外</th>
-                    <th class='col-num'>交通費</th>
-                    <th class='col-text'>備考</th>
-                    <th class='col-text-s'>システム備考</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for key, value in attend.items %}
-                    <form action="{% url 'front:attend_register_day' year month forloop.counter %}" method="POST">
-                        {% csrf_token %}
-                        {% if value.holiday == 1 %}
-                            <tr class="tr_detail_holiday">
-                        {% else %}
-                            <tr class="tr_detail_normal">
-                        {% endif %}
-                            
-                            <td><button type="submit" name="btn_save" value="{{ key }}">保存</button></td>
-                            <td>{{ key }}</td>
-                            <td>{{ value.weekday }}</td>
-                            <td>
-                                <select name="work_status">
+<div class="itemD">
+    <table class="uk-table uk-table uk-table-middle uk-table-hover">
+        <thead>
+            <tr>
+                <th>日</th>
+                <th>曜日</th>
+                <th class='uk-width-1-10'>勤怠区分</th>
+                <th class='uk-width-1-5'>作業内容</th>
+                <th class='uk-width-1-10'>始業</th>
+                <th class='uk-width-1-10'>終業</th>
+                <th class='uk-width-1-10'>休憩</th>
+                <th class='uk-width-1-10'>勤務時間</th>
+                <th class='uk-width-1-10'>時間外</th>
+                <th class='uk-width-1-10'>交通費</th>
+                <th class='uk-width-1-10'>備考</th>
+                <th class='uk-width-1-10'>システム備考</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for key, value in attend.items %}
+            <form action="{% url 'front:attend_register_day' year month forloop.counter %}" method="POST">
+                {% csrf_token %}
+                {% if value.holiday %}
+                <tr class="uk-background-primary">
+                    {% else %}
+                <tr class="tr_detail_normal">
+                    {% endif %}
+
+                    <td name="date">{{ key }}</td>
+                    <td>{{ value.weekday }}</td>
+                    <td>
+                        <div class="uk-margin">
+                            <div uk-form-custom="target: > * > span:first-child">
+                                <select name="work_status" aria-label="Custom controls">
                                     {% for wrk in workstatus %}
-                                        {% if value.attend.work_status == wrk.id %}
-                                            <option value="{{wrk.id}}" selected>{{wrk.name_selection}}</option>
-                                        {% else %}
-                                            <option value="{{wrk.id}}">{{wrk.name_selection}}</option>
-                                        {% endif %}
+                                    {% if value.attend.work_status == wrk.id %}
+                                    <option value="{{wrk.id}}" selected>{{wrk.name_selection}}</option>
+                                    {% else %}
+                                    <option value="{{wrk.id}}">{{wrk.name_selection}}</option>
+                                    {% endif %}
                                     {% endfor %}
                                 </select>
-                            </td>
-                            {% if value.attend.work_detail is None %}
-                                <td><input type="text" name="work_detail"></td>
-                            {% else %}
-                                <td><input type="text" name="work_detail" value={{value.attend.work_detail}}></td>
-                            {% endif %}
-
-                            <td><input type="time" class="time" name="work_start" min="00:00" max="23:59" value={{ value.attend.work_start|date:"H:i"}}></td>
-                            <td><input type="time" class="time" name="work_end" min="00:00" max="23:59" value={{ value.attend.work_end|date:"H:i"}}></td>
-                            <td><input type="time" class="time" name="work_off" min="00:00" max="23:59" value={{ value.attend.work_off|date:"H:i"}}></td>
-                            <td>{{ value.attend.work_time|date:"H:i"}}</td>
-                            <td>{{ value.attend.work_overtime|date:"H:i"}}</td>
-                            <td><input type="number" step="1" class="numeric" name="carfare" value={{value.attend.carfare}}></td>
-                            {% if value.attend.memo is None %}
-                                <td><input type="text" name="memo"></td>
-                            {% else %}
-                                <td><input type="text" name="memo" value={{value.attend.memo}}></td>
-                            {% endif %}
-                            {% if value.attend.sysmemo is None %}
-                                <td></td>
-                            {% else %}
-                                <td>{{value.attend.sysmemo}}</td>
-                            {% endif %}
-                        </tr>
-                    </form>
-                {% endfor %}
-            </tbody>
-        </table>
-    </div>
+                                <button class="uk-button uk-button-small" type="button" tabindex="-1">
+                                    <span></span>
+                                    <span uk-icon="icon: chevron-down"></span>
+                                </button>
+                            </div>
+                        </div>
+                    </td>
+                    {% if value.attend.work_detail is None %}
+                    <td><input type="text" name="work_detail" class="uk-input"></td>
+                    {% else %}
+                    <td><input type="text" name="work_detail" value="{{value.attend.work_detail}}" class="uk-input"></td>
+                    {% endif %}
+                    <td><input type="text" name="work_start" value="{{value.attend.work_start|date:'H:i'}}" class="uk-input"></td>
+                    <td><input type="text" name="work_end" value="{{value.attend.work_end|date:'H:i'}}" class="uk-input"></td>
+                    <td><input type="text" name="work_off" value="{{value.attend.work_off|date:'H:i'}}" class="uk-input"></td>
+                    <td>{{ value.attend.work_time|date:"H:i"}}</td>
+                    <td>{{ value.attend.work_overtime|date:"H:i"}}</td>
+                    <td><input type="text" name="carfare" value="{{value.attend.carfare}}" class="uk-input"></td>
+                    {% if value.attend.memo is None %}
+                    <td><input type="text" name="memo" class="uk-input"></td>
+                    {% else %}
+                    <td><input type="text" name="memo" value="{{value.attend.memo}}" class="uk-input"></td>
+                    {% endif %}
+                    {% if value.attend.sysmemo is None %}
+                    <td></td>
+                    {% else %}
+                    <td>{{value.attend.sysmemo}}</td>
+                    {% endif %}
+                </tr>
+            </form>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
 </div>
 
 <script type="text/javascript">
 
-    document.getElementById("btn_nextmonth").addEventListener('click', OnLinkClick, false)
-    document.getElementById("btn_lastmonth").addEventListener('click', OnLinkClick, false)
-    
-    function OnLinkClick(e) {
+    {% autoescape off %}
+    let year = {{ year }};
+    let month = {{ month }};
+    let protocol = {{ protocol }};
+    let origin = {{ origin }};
+    let port = {{ port }};
+    {% endautoescape %}
+    const url = protocol + "://" + origin + ":" + port;
 
-        btn_id = e.srcElement.id
-        url_base = '{{ url_base }}'
-        
-        // 現在表示中の年月
-        var dt = new Date({{ year }}, {{ month }}, 1, 0, 0, 0);
-        
-        switch (btn_id) {
-            case 'btn_nextmonth':
-                dt.setMonth(dt.getMonth() + 1);
-                window.location.href = url_base + "?year=" + dt.getFullYear() + "&month=" +  dt.getMonth()
-                break;
-            case 'btn_lastmonth':
-                dt.setMonth(dt.getMonth() - 1);
-                window.location.href = url_base + "?year=" + dt.getFullYear() + "&month=" +  dt.getMonth()
-                break;
-            case 'btn_delete':
-                value = window.confirm('当月分のデータを削除します。\n よろしいですか？');
-                if (value != true){
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                // Does this cookie string begin with the name we want?
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
                     break;
                 }
-
-                const form = document.createElement('form');
-                form.method = 'post'
-                form.action = url_base + '/delete'
-                const formValueYear = document.createElement("input")
-                formValueYear.value = {{ year }}
-                formValueYear.name = 'year'
-                const formValueMonth = document.createElement("input")
-                formValueMonth.value = {{ month }}
-                formValueMonth.name = 'month'
-                var childToken = document.createElement("div");
-                childToken.innerHTML = '{% csrf_token %}'
-                form.appendChild(formValueYear)
-                form.appendChild(formValueMonth)
-                form.appendChild(childToken)
-                
-                document.body.appendChild(form)
-                form.submit()
-
-            default:
-                console.log('no event difined');
+            }
         }
+        return cookieValue;
     }
+    const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]').value;
 
-  
+    // 更新処理
+    let update = async function (event) {
+        let h = event.target;
+        let targetRow = h.closest('tr');
+        
+        let date = targetRow.querySelector('[name=date]').innerHTML;
+
+        // 入力値チェック
+        let work_status = targetRow.querySelector('[name=work_status]').value;
+        let work_detail = targetRow.querySelector('[name=work_detail]').value;
+        let work_start = targetRow.querySelector('[name=work_start]').value;
+        let work_end = targetRow.querySelector('[name=work_end]').value;
+        let work_off = targetRow.querySelector('[name=work_off]').value;
+        let carfare = targetRow.querySelector('[name=carfare]').value;
+        let memo = targetRow.querySelector('[name=memo]').value;
+
+        const data = {
+            work_status: work_status,
+            work_detail: work_detail,
+            work_start: work_start,
+            work_off: work_off,
+            carfare: carfare,
+            memo: memo
+        };
+        try {
+            const response = await fetch(url + "/attend/" + year + "/" + month + "/" + date, {
+                method: "POST",
+                headers: {
+                    'X-CSRFToken': csrftoken,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(data)    // リクエスト本文をセット
+            });
+            if (!response.ok) {
+                throw new Error(`HTTP error: ${response.status}`);
+            }
+
+        } catch (error) {
+            console.error(`Error: ${error}`);
+        }
+    };
+
+    let selectMonth = function (moveTo) {
+
+        var dt = new Date(parseInt(year), parseInt(month)-1, 1);
+        if (moveTo == 'next'){
+            dt.setMonth(dt.getMonth() + 1);
+        } else {
+            dt.setMonth(dt.getMonth() - 1);
+        };
+
+        // monthは0始まりなことに注意
+        console.log(url + "/attend/" + dt.getFullYear() + "/" + (parseInt(dt.getMonth()) + 1))
+        window.location.href = url + "/attend/" + dt.getFullYear() + "/" + (parseInt(dt.getMonth()) + 1);
+    };
+
+    // 複数の要素にイベントリスナーを設定
+    let inputs = document.querySelectorAll('input, select');
+    inputs.forEach(function (input) {
+        input.addEventListener('change', update);
+    });
+
 </script>
 {% endblock %}

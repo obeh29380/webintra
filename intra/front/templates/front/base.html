@@ -39,7 +39,7 @@
                 <a id="{% url 'front:home' %}" href="{% url 'front:home' %}">Home</a>
               </li>
               <li>
-                <a id="{% url 'front:attend' %}" href="{% url 'front:attend' %}">勤怠入力</a>
+                <a id="{% url 'front:attend' %}" href="#" onclick="moveToAttend()">勤怠入力</a>
               </li>
               <li>
                 <a id="{% url 'front:board_menu' %}" href="{% url 'front:board_menu' %}">掲示板</a>
@@ -100,12 +100,12 @@
     // var current_page = document.getElementById("{{ request.path }}");
     // current_page.style.background = "#E6E6E6";
 
-    // //今日の日付データを変数に格納
-    // var today = new Date();
+    //今日の日付データを変数に格納
+    var today = new Date();
 
-    // //年・月・日・曜日を取得
-    // var year = today.getFullYear();
-    // var month = today.getMonth() + 1;
+    //年・月・日・曜日を取得
+    var baseYear = today.getFullYear();
+    var baseMonth = today.getMonth() + 1;
     // var week = today.getDay();
     // var day = today.getDate();
 
@@ -114,6 +114,10 @@
     // function clock() {
     //   document.getElementById("view-clock").innerHTML = getNow();
     // }
+
+    function moveToAttend(){
+      location.href = "{% url 'front:attend' %}" + "/" + baseYear + "/" + baseMonth;
+    };
   </script>
 </body>
 

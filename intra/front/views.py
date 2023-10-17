@@ -452,12 +452,7 @@ class ToolsView(View):
 
 class AttendView(View):
 
-    def get(self, request, *args, **kwargs):
-
-        now = make_aware(datetime.datetime.now())
-
-        month = int(request.GET.get("month", default=now.month))
-        year = int(request.GET.get("year", default=now.year))
+    def get(self, request, year, month, *args, **kwargs):
 
         dayCnt = calendar.monthrange(year, month)[1]
 
@@ -467,6 +462,9 @@ class AttendView(View):
         q = Attendance.objects.filter(
             userid=request.user, date__year=year, date__month=month)
 
+        logger.debug(year)
+        logger.debug(month)
+        logger.debug(q.count())
         if q.count() == 0:
             #  未登録の年月は、ひと月分まとめて登録する。
             register_attendance_month(request.user, year, month)
@@ -495,13 +493,15 @@ class AttendView(View):
                 work_day_total += 1
 
             work_status = get_workStatus(obj.date, request.user)
+
+            logger.debug(work_status)
             q = WorkStatus.objects.filter(
                 id=work_status['status'], holiday=True).count()
 
             if q > 0:
-                holiday = 1
+                holiday = True
             else:
-                holiday = 0
+                holiday = False
                 workday_month += 1
 
             attend[day] = {'attend': obj,
@@ -533,7 +533,10 @@ class AttendView(View):
             'work_day_total': work_day_total,
             'extra_hour_total': extra_hour_total,
             'work_time': obj.work_time,
-            'url_base': f'{request.scheme}://{request.get_host()}{request.path}'
+            'url_base': f'{request.scheme}://{request.get_host()}{request.path}',
+            'origin': os.getenv('ORIGIN'),
+            'protocol': os.getenv('PROTO'),
+            'port': os.getenv('PORT'),
         }
 
         url = "front/attend.html"
@@ -546,70 +549,6 @@ class AttendView(View):
         year = int(kwargs['year'])
         month = int(kwargs['month'])
         success_url = reverse_lazy('front:attend', args=(year, month))
-
-        # logger.debug(f'attend update day={kwargs["day"]}')
-
-        # q = Attendance.objects.filter(
-        #     userid=request.user, date__year=year, date__month=month)
-
-        # if q.count() == 0:
-        #     # 未登録の年月は、ひと月分まとめて登録する。
-        #     register_attendance_month(request.user, year, month)
-
-        # # 更新処理
-        # # TODO 時間の計算は日を跨いだ労働は未考慮。
-        # # 跨いだ分は翌日分に登録する必要がある。
-        # # その場合、一旦帰宅後、朝通常出勤した場合は、１日に二回出勤したことになるが、これも未対応。
-        # # 現状は、間の時間も含めて、休憩として登録するしかない。
-
-        # st = datetime.datetime.strptime(
-        #     request.POST["work_start"], '%H:%M')
-
-        # ed = datetime.datetime.strptime(
-        #     request.POST["work_end"], '%H:%M')
-
-        # workoff_v = datetime.datetime.strptime(
-        #     nvl(request.POST["work_off"], "00:00"), '%H:%M')
-
-        # workoff = datetime.timedelta(
-        #     hours=workoff_v.hour, minutes=workoff_v.minute)
-
-        # # 規定労働時間
-        # reg_work_time = UserSetting.objects.get(userid=request.user)
-
-        # worktime_b = ed-st-workoff
-        # worktime_m, worktime_s = divmod(worktime_b.seconds, 60)
-        # worktime_h, worktime_m = divmod(worktime_m, 60)
-        # worktime = datetime.time(hour=worktime_h, minute=worktime_m, second=0)
-
-        # if worktime < reg_work_time.day_worktime:
-        #     overtime = "00:00"
-        # else:
-        #     overtime = datetime.timedelta(hours=worktime.hour, minutes=worktime.minute) - datetime.timedelta(
-        #         hours=reg_work_time.day_worktime.hour, minutes=reg_work_time.day_worktime.minute)
-        #     y, m, d = second2time(overtime.seconds)
-        #     overtime = datetime.time(
-        #         hour=y, minute=m, second=d)
-
-        # attendance = Attendance.objects.get(userid=request.user, date=date)
-        # attendance.work_status = request.POST["work_status"]
-        # attendance.work_detail = request.POST["work_detail"]
-
-        # work_start_h, work_start_m = request.POST["work_start"].split(':')
-        # attendance.work_start = make_aware(
-        #     datetime.datetime(year, month, day, hour=int(
-        #         work_start_h), minute=int(work_start_m), second=0, microsecond=0)
-        # )
-        # work_end_h, work_end_m = request.POST["work_end"].split(':')
-        # attendance.work_end = make_aware(datetime.datetime(year, month, day, hour=int(
-        #     work_end_h), minute=int(work_end_m), second=0, microsecond=0))
-        # attendance.work_off = nvl(request.POST["work_off"], "00:00")
-        # attendance.work_time = worktime
-        # attendance.work_overtime = overtime
-        # attendance.carfare = request.POST["carfare"]
-        # attendance.memo = request.POST["memo"]
-
-        # attendance.save()
 
         return HttpResponseRedirect(success_url)  # リダイレクト
 
@@ -730,31 +669,35 @@ class AttendRegisterDay(View):
         month = int(kwargs['month'])
         day = int(kwargs['day'])
         date = str(year)+"-"+str(month)+"-"+str(day)
-        success_url = reverse_lazy('front:attend', args=(year, month))
 
-        logger.debug(f'attend update day={kwargs["day"]}')
+        import json
+        datas = json.loads(request.body)
 
-        q = Attendance.objects.filter(
-            userid=request.user, date__year=year, date__month=month)
+        work_status = datas.get('work_status')
+        work_detail = datas.get('work_detail')
+        work_start = datas.get('work_start')
+        work_end = datas.get('work_end')
+        work_off = datas.get('work_off')
+        carfare = datas.get('carfare')
+        memo = datas.get('memo')
 
-        if q.count() == 0:
-            # 未登録の年月は、ひと月分まとめて登録する。
-            register_attendance_month(request.user, year, month)
-
-        # 更新処理
-        # TODO 時間の計算は日を跨いだ労働は未考慮。
-        # 跨いだ分は翌日分に登録する必要がある。
-        # その場合、一旦帰宅後、朝通常出勤した場合は、１日に二回出勤したことになるが、これも未対応。
-        # 現状は、間の時間も含めて、休憩として登録するしかない。
+        # b = WorkStatus(
+        #     name="",
+        #     name_selection=name_selection,
+        #     use=valid,
+        #     holiday=holiday,
+        #     memo=memo,
+        # )
+        # b.save()
 
         st = datetime.datetime.strptime(
-            request.POST["work_start"], '%H:%M')
+            nvl(work_start, '00:00'), '%H:%M')
 
         ed = datetime.datetime.strptime(
-            request.POST["work_end"], '%H:%M')
+            nvl(work_end, '00:00'), '%H:%M')
 
         workoff_v = datetime.datetime.strptime(
-            nvl(request.POST["work_off"], "00:00"), '%H:%M')
+            nvl(work_off, "00:00"), '%H:%M')
 
         workoff = datetime.timedelta(
             hours=workoff_v.hour, minutes=workoff_v.minute)
@@ -777,28 +720,30 @@ class AttendRegisterDay(View):
                 hour=y, minute=m, second=d)
 
         attendance = Attendance.objects.get(userid=request.user, date=date)
-        attendance.work_status = request.POST["work_status"]
-        attendance.work_detail = request.POST["work_detail"]
+        attendance.work_status = work_status
+        attendance.work_detail = work_detail
 
-        work_start_h, work_start_m = request.POST["work_start"].split(':')
+        work_start_h, work_start_m = nvl(work_start, '00:00').split(':')
         attendance.work_start = make_aware(
             datetime.datetime(year, month, day, hour=int(
                 work_start_h), minute=int(work_start_m), second=0, microsecond=0)
         )
-        work_end_h, work_end_m = request.POST["work_end"].split(':')
+        work_end_h, work_end_m = nvl(work_end, '00:00').split(':')
         attendance.work_end = make_aware(datetime.datetime(year, month, day, hour=int(
             work_end_h), minute=int(work_end_m), second=0, microsecond=0))
-        attendance.work_off = nvl(request.POST["work_off"], "00:00")
+        attendance.work_off = nvl(work_off, "00:00")
         attendance.work_time = worktime
         attendance.work_overtime = overtime
-        attendance.carfare = request.POST["carfare"]
-        attendance.memo = request.POST["memo"]
+        attendance.carfare = carfare
+        attendance.memo = memo
 
         attendance.save()
 
-        return HttpResponseRedirect(success_url)  # リダイレクト
+        data = {'result': True}
+        return JsonResponse(data)
 
 
+        
 class AttendDelete(View):
 
     """attend/delete" に対応する処理

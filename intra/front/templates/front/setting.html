@@ -7,35 +7,41 @@
 
 {% block content %}
 
-
-<div class="row">
-    <div class="col-md-auto px-5">
-        <H1>MENU</H1>
+<div class="uk-container">
+    <div class="uk-margin-medium-top">
+        <ul class="uk-flex-center" uk-tab data-uk-tab="{connect:'#my-id'}">
+            <li class="uk-active"><a href="#">勤怠区分設定</a></li>
+            <li><a href="#">休日設定</a></li>
+            <li><a href="#">ユーザ設定</a></li>
+            <li><a href="#">決裁フォーマット</a></li>
+        </ul>
+        <ul id="my-id" class="uk-switcher uk-margin">
+            <li>
+                <div class="uk-cover-container uk-height-large" uk-height-viewport="expand: true">
+                    <iframe src="{% url 'front:setting_work_status' %}" width="100%" height="100%"></iframe>
+                </div>
+            </li>
+            <li>
+                <div class="uk-cover-container uk-height-large" uk-height-viewport="expand: true"">
+                    <iframe src="{% url 'front:setting_holiday' %}" width="100%" height="100%"></iframe>
+                </div>
+            </li>
+            <li>
+                <div class="uk-cover-container uk-height-large" uk-height-viewport="expand: true"">
+                    <iframe src="{% url 'front:setting_user' %}" width="100%" height="100%"></iframe>
+                </div>
+            </li>
+            <li>
+                <div class="uk-cover-container uk-height-large" uk-height-viewport="expand: true"">
+                    <iframe src="{% url 'front:setting_approval_format' 0 %}" width="100%" height="100%"></iframe>
+                </div>
+            </li>
+        </ul>
     </div>
+
+
+
 </div>
-<div class="row">
-    <div class="col-md-auto px-5">
-
-        - <a href="{% url 'front:setting_work_status' %}" >勤怠区分設定</a><br><br>
-        - <a href="{% url 'front:setting_holiday' %}" >休日設定</a><br><br>
-        - <a href="{% url 'front:setting_user' %}" >ユーザ設定</a><br><br>
-        - <a href="{% url 'front:setting_approval_format' 0  %}" >決裁フォーマット設定</a><br><br>
-
-    </div>
-</div>
-    
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 

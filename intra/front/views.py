@@ -267,7 +267,7 @@ class NewApprovalView(View):
                   'upd': upd,
                   'user_all': user_all,
                   }
-        return render(request, "front/approval_detail.html", params)
+        return render(request, "front/approval_format_new.html", params)
 
     def post(self, request, id, *args, **kwargs):
 

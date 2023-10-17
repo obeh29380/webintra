@@ -1,0 +1,33 @@
+<!doctype html>
+{% load static %}
+<html lang="ja">
+
+<head>
+  <link rel="stylesheet" href="{% static 'css/icon.css' %}">
+  <link rel="stylesheet" href="/static/uikit/css/uikit.css">
+  <script src="/static/uikit/js/uikit.min.js"></script>
+  <script src="/static/uikit/js/uikit-icons.min.js"></script>
+  <title>{% block title %}{% endblock %}</title>
+
+  {% block header %}{% endblock %}
+</head>
+{% block header2 %}{% endblock %}
+
+<body>
+
+  <header>
+  </header>
+
+  <div class="content-main">
+    {% block content %}{% endblock %}
+  </div>
+
+  <footer>
+
+  </footer>
+
+  <script type="text/javascript">
+  </script>
+</body>
+
+</html>

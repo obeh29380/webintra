@@ -1,0 +1,74 @@
+{% extends "front/base.html" %}
+{% load static %}
+
+
+{% block header %}
+<nav class="uk-navbar-container">
+  <div class="uk-container">
+    <div uk-navbar>
+      <div class="uk-navbar-left">
+
+        <ul class="uk-navbar-nav">
+          <li>
+            <a href="{% url 'front:home' %}">
+              <img src="{% static 'images/head.jpg' %}" alt="Home" width="50px" height="50px">
+            </a>
+          </li>
+          <li>
+            <a id="{% url 'front:home' %}" href="{% url 'front:home' %}">Home</a>
+          </li>
+          <li>
+            <a id="{% url 'front:attend' %}" href="#" onclick="moveToAttend()">勤怠入力</a>
+          </li>
+          <li>
+            <a id="{% url 'front:board_menu' %}" href="{% url 'front:board_menu' %}">掲示板</a>
+          </li>
+          <li>
+            <a id="{% url 'front:approval' %}" href="{% url 'front:approval' %}">決裁</a>
+          </li>
+          <li>
+            <a id="{% url 'front:chat' %}" href="{% url 'front:chat' %}">チャット</a>
+          </li>
+          <li>
+            <a id="{% url 'front:tools' %}" href="{% url 'front:tools' %}">Tools</a>
+          </li>
+          <li>
+            <a id="{% url 'front:setting' %}" href="{% url 'front:setting' %}">設定</a>
+          </li>
+        </ul>
+      </div>
+      <div class="uk-navbar-right">
+        <ul class="uk-navbar-nav">
+          {% if not page_signup and not page_login %}
+          <li>
+            <a href="javascript:void[0]">
+              <img src="{% static 'images/user_image_sample.jpg' %}" class="img-icon">
+            </a>
+          </li>
+          <li>
+            <a href="javascript:void[0]">{{ request.user }}</a>
+          </li>
+          <li>
+            <a href="{% url 'front:logout' %}">ログアウト</a>
+          </li>
+          {% endif %}
+        </ul>
+      </div>
+    </div>
+  </div>
+</nav>
+
+<script type="text/javascript">
+
+  //今日の日付データを変数に格納
+  var today = new Date();
+
+  //年・月・日・曜日を取得
+  var baseYear = today.getFullYear();
+  var baseMonth = today.getMonth() + 1;
+
+  function moveToAttend() {
+    location.href = "{% url 'front:attend' %}" + "/" + baseYear + "/" + baseMonth;
+  };
+</script>
+{% endblock %}

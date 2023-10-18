@@ -1,13 +1,8 @@
-{% extends "front/base.html" %}
+{% extends "front/base_nav.html" %}
 {% load static %}
 {% block title %}掲示板一覧{% endblock %}
 
-{% block header %}
-
-{% endblock %}
-
 {% block content %}
-
 
 <a href="{% url 'front:board_detail' 0 %}" class="button">新規</a>
 <div class="board-whole_wrap">

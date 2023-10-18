@@ -1,4 +1,4 @@
-{% extends "front/base_setting.html" %}
+{% extends "front/base.html" %}
 {% block title %}勤怠区分設定{% endblock %}
 
 {% block header %}
@@ -99,12 +99,11 @@
 <script type="text/javascript">
 
     {% autoescape off %}
-    let protocol = {{ protocol }};
-    let origin = {{ origin }};
-    let port = {{ port }};
+    let protocol = "{{ protocol }}";
+    let host = "{{ host }}";
     {% endautoescape %}
 
-    const url = protocol + "://" + origin + ":" + port;
+    const url = protocol + "://" + host;
 
     let onoffHandler = function (event) {
         let h = event.target;
@@ -171,40 +170,28 @@
             "holiday": holiday_json,
             "memo": memo
         };
-        try {
-            const response = await fetch(url + "/setting/work_status", {
-                method: "POST",   // GET POST PUT DELETEなど
-                headers: {
-                    'X-CSRFToken': csrftoken,
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(data)    // リクエスト本文をセット
-            });
-            if (!response.ok) {
-                throw new Error(`HTTP error: ${response.status}`);
-            }
 
+        const response = await request(url + "/setting/work_status", "POST", data, csrftoken);
 
-            const responseBody = await response.json();
-
-            const newRow =
-                '<tr> \
-                    <td><button class="uk-button uk-button-danger uk-button-small" type="button">削除</button></td> \
-                    <td><input class="uk-input" type="text" value="' + name + '"></td> \
-                    <td> \
-                        <button class="uk-button uk-button-default uk-button-small btn-onoff" type="button" on-text="有効" off-text="無効">' + valid + '</button> \
-                    </td> \
-                    <td> \
-                        <button class="uk-button uk-button-default  uk-button-small btn-onoff" type="button" on-text="休日" off-text="出勤">' + holiday + '</button> \
-                    </td> \
-                    <td><input class="uk-input" type="text" value="' + memo + '"></td> \
-                </tr>'
-            const registerd = document.querySelector('#registerd');
-            registerd.insertAdjacentHTML('beforeend', newRow)
-
-        } catch (error) {
-            console.error(`Error: ${error}`);
+        if (!response.ok) {
+            alert('登録に失敗しました。' + '[ '+ response.status + ']' + '[ '+ response.statusText + ']')
+            throw new Error(`HTTP error: ${response.status}`);
         }
+
+        const newRow =
+            '<tr> \
+                <td><button class="uk-button uk-button-danger uk-button-small" type="button">削除</button></td> \
+                <td><input class="uk-input" type="text" value="' + name + '"></td> \
+                <td> \
+                    <button class="uk-button uk-button-default uk-button-small btn-onoff" type="button" on-text="有効" off-text="無効">' + valid + '</button> \
+                </td> \
+                <td> \
+                    <button class="uk-button uk-button-default  uk-button-small btn-onoff" type="button" on-text="休日" off-text="出勤">' + holiday + '</button> \
+                </td> \
+                <td><input class="uk-input" type="text" value="' + memo + '"></td> \
+            </tr>'
+        const registerd = document.querySelector('#registerd');
+        registerd.insertAdjacentHTML('beforeend', newRow)
     };
 
     document.querySelector('#btn-register').addEventListener('click', registerWorkStatus);
@@ -244,21 +231,13 @@
             holiday: holiday_json,
             memo: memo
         };
-        try {
-            const response = await fetch(url + "/setting/work_status/" + id, {
-                method: "POST",
-                headers: {
-                    'X-CSRFToken': csrftoken,
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(data)    // リクエスト本文をセット
-            });
-            if (!response.ok) {
-                throw new Error(`HTTP error: ${response.status}`);
-            }
 
-        } catch (error) {
-            console.error(`Error: ${error}`);
+        console.log(url)
+        const response = await request(url + "/setting/work_status/" + id, "POST", data, csrftoken);
+
+        if (!response.ok) {
+            alert('更新に失敗しました。' + '[ '+ response.status + ']' + '[ '+ response.statusText + ']')
+            throw new Error(`HTTP error: ${response.status}`);
         }
     };
 
@@ -267,19 +246,13 @@
         let h = event.target;
         let id = h.parentElement.parentElement.querySelector('[name=id]').innerHTML;
         try {
-            const response = await fetch(url + "/setting/work_status/" + id, {
-                method: "DELETE",
-                headers: {
-                    'X-CSRFToken': csrftoken,
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(data)    // リクエスト本文をセット
-            });
+            const response = await request(url + "/setting/work_status/" + id, "DELETE", {}, csrftoken);
+
             if (!response.ok) {
+                alert('削除に失敗しました。' + '[ '+ response.status + ']' + '[ '+ response.statusText + ']')
                 throw new Error(`HTTP error: ${response.status}`);
             }
 
-            const responseBody = await response.json();
             h.parentElement.parentElement.remove();
 
         } catch (error) {

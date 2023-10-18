@@ -2,7 +2,7 @@ import os
 import logging
 
 from urllib.parse import urlencode
-from django.views.generic import TemplateView, ListView
+from django.views.generic import ListView
 from django.http.response import JsonResponse
 from django.urls import reverse_lazy
 from django.http import HttpResponseRedirect
@@ -64,12 +64,25 @@ class SettingBase(ListView):
         ctx['error_massage'] = error_message
 
         return ctx
+    
+    def _get_url_info(self, request):
+
+        host = request.get_host()
+        protocol = request.headers['Referer'].split(':')[0]
+        return {
+            'host': host,
+            'protocol': protocol,
+        }
 
     def post(self, request):
 
        # 継承クラスで実装
-       print('setting base post')
        pass
+
+    def get(self, request):
+
+        # 継承クラスで実装
+        pass
 
     def _check_validator(self):
        # 継承クラスで実装
@@ -108,19 +121,21 @@ class SettingWorkStatusView(SettingBase):
 
     def get(self, request):
 
+        url = self._get_url_info(request)
+
         data = WorkStatus.objects.all()
 
         columns = self._get_columns(WorkStatus)
         columns.append('is_new')
 
-        params = {'tab': '勤怠区分設定',
-                  'title': '勤怠区分設定',
-                  'data': data,
-                  'columns': columns,
-                  'origin': os.getenv('ORIGIN'),
-                  'protocol': os.getenv('PROTO'),
-                  'port': os.getenv('PORT'),
-                  }
+        params = dict(
+            tab='勤怠区分設定',
+            title='勤怠区分設定',
+            data=data,
+            columns=columns,
+            host=url['host'],
+            protocol=url['protocol'],
+        )
         return render(request, "front/workstatus_list.html", params)
 
     def post(self, request):
@@ -130,7 +145,6 @@ class SettingWorkStatusView(SettingBase):
 
         import json
         datas = json.loads(request.body)
-        logging.debug(datas)
 
         name_selection = datas.get('name')
         valid = datas.get('valid')

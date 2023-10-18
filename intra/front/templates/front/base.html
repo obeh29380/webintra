@@ -1,83 +1,21 @@
-<!doctype html>
 {% load static %}
+<!doctype html>
 <html lang="ja">
 
 <head>
-  <!-- <link rel="stylesheet" href="{% static 'css/navbar.css' %}"> -->
-  <!-- <link rel="stylesheet" href="{% static 'css/style.css' %}"> -->
   <link rel="stylesheet" href="{% static 'css/icon.css' %}">
-  <!-- <link rel="stylesheet" href="/static/uikit/css/uikit.min.css"> -->
   <link rel="stylesheet" href="/static/uikit/css/uikit.css">
   <script src="/static/uikit/js/uikit.min.js"></script>
   <script src="/static/uikit/js/uikit-icons.min.js"></script>
+  <script src="/static/js/common.js"></script>
   <title>{% block title %}{% endblock %}</title>
 
-  {% block header %}{% endblock %}
+  {% block head %}{% endblock %}
 </head>
-{% block header2 %}{% endblock %}
 
 <body>
-
-  <!-- 
-    <script src="https://code.jquery.com/jquery-3.2.1.min.js" integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4=" crossorigin="anonymous"></script>
-    <script src="{% static 'javascript/common.js' %}"></script> -->
-
   <header>
-
-    <nav class="uk-navbar-container">
-      <div class="uk-container">
-        <div uk-navbar>
-          <div class="uk-navbar-left">
-
-            <ul class="uk-navbar-nav">
-              <li>
-                <a href="{% url 'front:home' %}">
-                  <img src="{% static 'images/head.jpg' %}" alt="Home" width="50px" height="50px">
-                </a>
-              </li>
-              <li>
-                <a id="{% url 'front:home' %}" href="{% url 'front:home' %}">Home</a>
-              </li>
-              <li>
-                <a id="{% url 'front:attend' %}" href="#" onclick="moveToAttend()">勤怠入力</a>
-              </li>
-              <li>
-                <a id="{% url 'front:board_menu' %}" href="{% url 'front:board_menu' %}">掲示板</a>
-              </li>
-              <li>
-                <a id="{% url 'front:approval' %}" href="{% url 'front:approval' %}">決裁</a>
-              </li>
-              <li>
-                <a id="{% url 'front:chat' %}" href="{% url 'front:chat' %}">チャット</a>
-              </li>
-              <li>
-                <a id="{% url 'front:tools' %}" href="{% url 'front:tools' %}">Tools</a>
-              </li>
-              <li>
-                <a id="{% url 'front:setting' %}" href="{% url 'front:setting' %}">設定</a>
-              </li>
-            </ul>
-          </div>
-          <div class="uk-navbar-right">
-            <ul class="uk-navbar-nav">
-              {% if not page_signup and not page_login %}
-              <li>
-                <a href="javascript:void[0]">
-                  <img src="{% static 'images/user_image_sample.jpg' %}" class="img-icon">
-                </a>
-              </li>
-              <li>
-                <a href="javascript:void[0]">{{ request.user }}</a>
-              </li>
-              <li>
-                <a href="{% url 'front:logout' %}">ログアウト</a>
-              </li>
-              {% endif %}
-            </ul>
-          </div>
-        </div>
-      </div>
-    </nav>
+    {% block header %}{% endblock %}
   </header>
 
   <div class="content-main">
@@ -85,40 +23,8 @@
   </div>
 
   <footer>
-    <!-- <div class="copyright">
-          made by terayama
-        </div>
-        <div class="version">
-          v1.1.0
-        </div> -->
-
-
+    {% block footer %}{% endblock %}
   </footer>
-
-  <script type="text/javascript">
-    // // 現在のページに対応するナビゲーションバーの項目の背景色を設定
-    // var current_page = document.getElementById("{{ request.path }}");
-    // current_page.style.background = "#E6E6E6";
-
-    //今日の日付データを変数に格納
-    var today = new Date();
-
-    //年・月・日・曜日を取得
-    var baseYear = today.getFullYear();
-    var baseMonth = today.getMonth() + 1;
-    // var week = today.getDay();
-    // var day = today.getDate();
-
-    // timerID = setInterval('clock()', 500); //0.5秒毎にclock()を実行
-
-    // function clock() {
-    //   document.getElementById("view-clock").innerHTML = getNow();
-    // }
-
-    function moveToAttend(){
-      location.href = "{% url 'front:attend' %}" + "/" + baseYear + "/" + baseMonth;
-    };
-  </script>
 </body>
 
 </html>

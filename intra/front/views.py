@@ -82,6 +82,16 @@ def register_attendance_month(userid, year, month):
         )
         b.save()
 
+class BaseView(View):
+
+    def _get_url_info(self, request):
+
+        host = request.get_host()
+        protocol = request.headers['Referer'].split(':')[0]
+        return {
+            'host': host,
+            'protocol': protocol,
+        }
 
 class TopView(TemplateView):
     template_name = "front/top.html"
@@ -450,7 +460,7 @@ class ToolsView(View):
         return render(request, "front/tools.html", params)
 
 
-class AttendView(View):
+class AttendView(BaseView):
 
     def get(self, request, year, month, *args, **kwargs):
 
@@ -520,6 +530,7 @@ class AttendView(View):
         extra_hour_total = {'hour': h+d*24,
                             'minute': datetime.time(0, m)}
 
+        url = self._get_url_info(request)
         params = {
             'request': request,
             'year': year,
@@ -534,9 +545,8 @@ class AttendView(View):
             'extra_hour_total': extra_hour_total,
             'work_time': obj.work_time,
             'url_base': f'{request.scheme}://{request.get_host()}{request.path}',
-            'origin': os.getenv('ORIGIN'),
-            'protocol': os.getenv('PROTO'),
-            'port': os.getenv('PORT'),
+            'host': url['host'],
+            'protocol': url['protocol'],
         }
 
         url = "front/attend.html"
@@ -782,12 +792,13 @@ class AttendDelete(View):
 class LoginView(LoginView):
     """ログインページ"""
     form_class = forms.LoginForm
-    template_name = "front/login.html"
+    template_name = "front/index.html"
 
 
-class LogoutView(LogoutView):
-    """ログインページ"""
-    template_name = "front/home.html"
+class LogoutView(View):
+    """ログアウト"""
+    def get(self, request):
+        return HttpResponseRedirect(reverse_lazy('front:top'))
 
 
 class signupView(FormView):

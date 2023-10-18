@@ -1,9 +1,5 @@
-{% extends "front/base.html" %}
+{% extends "front/base_nav.html" %}
 {% block title %}勤怠詳細{% endblock %}
-
-
-{% block header %}
-{% endblock %}
 
 {% block content %}
 <hr>
@@ -13,10 +9,11 @@
             <div class="uk-card uk-card-default uk-card-body">
                 <div class="uk-card-body">
                     <h2><a href="#" onclick="selectMonth('prev');" uk-icon="icon: chevron-left" id="prev-month"
-                        class="month_selector"></a>
-                    {{year}}年{{month}}月
-                    <a href="#" onclick="selectMonth('next');" uk-icon="icon: chevron-right" id="next-month"
-                        class="month_selector"></a></h2>
+                            class="month_selector"></a>
+                        {{year}}年{{month}}月
+                        <a href="#" onclick="selectMonth('next');" uk-icon="icon: chevron-right" id="next-month"
+                            class="month_selector"></a>
+                    </h2>
                 </div>
             </div>
         </div>
@@ -101,11 +98,15 @@
                     {% if value.attend.work_detail is None %}
                     <td><input type="text" name="work_detail" class="uk-input"></td>
                     {% else %}
-                    <td><input type="text" name="work_detail" value="{{value.attend.work_detail}}" class="uk-input"></td>
+                    <td><input type="text" name="work_detail" value="{{value.attend.work_detail}}" class="uk-input">
+                    </td>
                     {% endif %}
-                    <td><input type="text" name="work_start" value="{{value.attend.work_start|date:'H:i'}}" class="uk-input"></td>
-                    <td><input type="text" name="work_end" value="{{value.attend.work_end|date:'H:i'}}" class="uk-input"></td>
-                    <td><input type="text" name="work_off" value="{{value.attend.work_off|date:'H:i'}}" class="uk-input"></td>
+                    <td><input type="text" name="work_start" value="{{value.attend.work_start|date:'H:i'}}"
+                            class="uk-input"></td>
+                    <td><input type="text" name="work_end" value="{{value.attend.work_end|date:'H:i'}}"
+                            class="uk-input"></td>
+                    <td><input type="text" name="work_off" value="{{value.attend.work_off|date:'H:i'}}"
+                            class="uk-input"></td>
                     <td>{{ value.attend.work_time|date:"H:i"}}</td>
                     <td>{{ value.attend.work_overtime|date:"H:i"}}</td>
                     <td><input type="text" name="carfare" value="{{value.attend.carfare}}" class="uk-input"></td>
@@ -125,18 +126,16 @@
         </tbody>
     </table>
 </div>
-</div>
 
 <script type="text/javascript">
 
     {% autoescape off %}
     let year = {{ year }};
     let month = {{ month }};
-    let protocol = {{ protocol }};
-    let origin = {{ origin }};
-    let port = {{ port }};
+    let protocol = "{{ protocol }}";
+    let host = "{{ host }}";
     {% endautoescape %}
-    const url = protocol + "://" + origin + ":" + port;
+    const url = protocol + "://" + host;
 
     function getCookie(name) {
         let cookieValue = null;
@@ -159,7 +158,7 @@
     let update = async function (event) {
         let h = event.target;
         let targetRow = h.closest('tr');
-        
+
         let date = targetRow.querySelector('[name=date]').innerHTML;
 
         // 入力値チェック
@@ -199,8 +198,8 @@
 
     let selectMonth = function (moveTo) {
 
-        var dt = new Date(parseInt(year), parseInt(month)-1, 1);
-        if (moveTo == 'next'){
+        var dt = new Date(parseInt(year), parseInt(month) - 1, 1);
+        if (moveTo == 'next') {
             dt.setMonth(dt.getMonth() + 1);
         } else {
             dt.setMonth(dt.getMonth() - 1);

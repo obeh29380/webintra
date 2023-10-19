@@ -7809,6 +7809,9 @@ iframe[data-uk-cover] {
 .uk-background-secondary {
   background-color: #222;
 }
+.uk-background-holiday {
+  background-color: #edc5ee5d;
+}
 /* Size
  ========================================================================== */
 .uk-background-cover,

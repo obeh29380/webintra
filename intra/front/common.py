@@ -22,7 +22,7 @@ def get_work_status_id(status):
 
     for i, work_status in enumerate(work_status_default):
         if work_status["name"] == status:
-            return i
+            return i + 1
 
 
 def get_workStatus(date, user):
@@ -32,6 +32,7 @@ def get_workStatus(date, user):
 
     q = Holiday.objects.filter(date=date)
     if q.count() > 0:
+        # 会社の休日
         for data in q:
             name = data.detail
 
@@ -40,35 +41,36 @@ def get_workStatus(date, user):
                        }
 
     elif jpholiday.is_holiday(date):
+        # 祝日
         work_status = {'status': get_work_status_id('HOLIDAY_COUNTRY'),
                        'name': jpholiday.is_holiday_name(date),
                        }
     else:
-        if date.weekday() == WEEKDAY.MON and regHoli.mon_is_holiday:
+        if date.weekday() == WEEKDAY.MON.value and regHoli.mon_is_holiday:
             work_status = {'status': get_work_status_id('HOLIDAY'),
                            'name': None,
                            }
-        elif date.weekday() == WEEKDAY.TUE and regHoli.tue_is_holiday:
+        elif date.weekday() == WEEKDAY.TUE.value and regHoli.tue_is_holiday:
             work_status = {'status': get_work_status_id('HOLIDAY'),
                            'name': None,
                            }
-        elif date.weekday() == WEEKDAY.WED and regHoli.wed_is_holiday:
+        elif date.weekday() == WEEKDAY.WED.value and regHoli.wed_is_holiday:
             work_status = {'status': get_work_status_id('HOLIDAY'),
                            'name': None,
                            }
-        elif date.weekday() == WEEKDAY.THU and regHoli.thu_is_holiday:
+        elif date.weekday() == WEEKDAY.THU.value and regHoli.thu_is_holiday:
             work_status = {'status': get_work_status_id('HOLIDAY'),
                            'name': None,
                            }
-        elif date.weekday() == WEEKDAY.FRI and regHoli.fri_is_holiday:
+        elif date.weekday() == WEEKDAY.FRI.value and regHoli.fri_is_holiday:
             work_status = {'status': get_work_status_id('HOLIDAY'),
                            'name': None,
                            }
-        elif date.weekday() == WEEKDAY.SAT and regHoli.sat_is_holiday:
+        elif date.weekday() == WEEKDAY.SAT.value and regHoli.sat_is_holiday:
             work_status = {'status': get_work_status_id('HOLIDAY'),
                            'name': None,
                            }
-        elif date.weekday() == WEEKDAY.SUN and regHoli.sun_is_holiday:
+        elif date.weekday() == WEEKDAY.SUN.value and regHoli.sun_is_holiday:
             work_status = {'status': get_work_status_id('HOLIDAY'),
                            'name': None,
                            }

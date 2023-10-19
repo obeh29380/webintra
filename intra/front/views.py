@@ -1,5 +1,6 @@
 import calendar
 import datetime
+import json
 import os
 from logging import getLogger
 
@@ -472,9 +473,6 @@ class AttendView(BaseView):
         q = Attendance.objects.filter(
             userid=request.user, date__year=year, date__month=month)
 
-        logger.debug(year)
-        logger.debug(month)
-        logger.debug(q.count())
         if q.count() == 0:
             #  未登録の年月は、ひと月分まとめて登録する。
             register_attendance_month(request.user, year, month)
@@ -491,6 +489,12 @@ class AttendView(BaseView):
         work_day_total = 0
         extra_hour_total_t = datetime.timedelta(hours=0, minutes=0)
 
+        work_status_db = WorkStatus.objects.all()
+        work_status = dict()
+        for r in work_status_db:
+            work_status[r.id] = r.holiday
+
+        logger.debug(work_status)
         for obj in d:
             day += 1
             weekday = WEEKDAYS[obj.date.weekday()]
@@ -502,21 +506,12 @@ class AttendView(BaseView):
             if obj.work_time != datetime.time(0, 0, 0):
                 work_day_total += 1
 
-            work_status = get_workStatus(obj.date, request.user)
+            workday_month += 1
 
-            logger.debug(work_status)
-            q = WorkStatus.objects.filter(
-                id=work_status['status'], holiday=True).count()
-
-            if q > 0:
-                holiday = True
-            else:
-                holiday = False
-                workday_month += 1
-
+            logger.debug(obj.work_status)
             attend[day] = {'attend': obj,
                            'weekday': weekday,
-                           'holiday': holiday,
+                           'holiday': work_status[obj.work_status],
                            }
 
         tmp = WorkStatus.objects.filter(use=True)
@@ -551,16 +546,6 @@ class AttendView(BaseView):
 
         url = "front/attend.html"
         return render(request, url, params)
-
-    def post(self, request, *args, **kwargs):
-        """出勤簿の登録処理。指定された月の分を一括で登録する。
-            TODO まだ日単位のものをコピペしただけ。処理が長くなるので、別途管理者用コマンドにした方が良いかなー
-        """
-        year = int(kwargs['year'])
-        month = int(kwargs['month'])
-        success_url = reverse_lazy('front:attend', args=(year, month))
-
-        return HttpResponseRedirect(success_url)  # リダイレクト
 
 
 def get_attendance_info(user_id, year, month):
@@ -631,7 +616,6 @@ def get_attendance_info(user_id, year, month):
 def attend_info(request, *args, **kwargs) -> JsonResponse:
 
     if request.user.is_anonymous:
-        print('未ログイン')
         return JsonResponse(data=None)
 
     now = make_aware(datetime.datetime.now())
@@ -672,7 +656,6 @@ class AttendRegisterDay(View):
 
     def post(self, request, *args, **kwargs):
         """出勤簿の更新処理。URLに指定された日の出勤情報を更新する。
-
         """
 
         year = int(kwargs['year'])
@@ -680,8 +663,8 @@ class AttendRegisterDay(View):
         day = int(kwargs['day'])
         date = str(year)+"-"+str(month)+"-"+str(day)
 
-        import json
         datas = json.loads(request.body)
+        logger.debug(datas)
 
         work_status = datas.get('work_status')
         work_detail = datas.get('work_detail')
@@ -690,15 +673,6 @@ class AttendRegisterDay(View):
         work_off = datas.get('work_off')
         carfare = datas.get('carfare')
         memo = datas.get('memo')
-
-        # b = WorkStatus(
-        #     name="",
-        #     name_selection=name_selection,
-        #     use=valid,
-        #     holiday=holiday,
-        #     memo=memo,
-        # )
-        # b.save()
 
         st = datetime.datetime.strptime(
             nvl(work_start, '00:00'), '%H:%M')

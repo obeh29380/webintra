@@ -480,7 +480,7 @@ class AttendView(BaseView):
         d = Attendance.objects.filter(
             userid=request.user, date__gte=dayf, date__lte=dayl)
         userinfo = UserSetting.objects.get(userid=request.user)
-        worktime = userinfo.day_worktime.hour
+        worktime = datetime.timedelta(hours=userinfo.day_worktime.hour, minutes=userinfo.day_worktime.minute)
 
         day = 0
         workday_month = 0
@@ -494,6 +494,7 @@ class AttendView(BaseView):
         for r in work_status_db:
             work_status[r.id] = r.holiday
 
+        car_fare = 0
         for obj in d:
             day += 1
             weekday = WEEKDAYS[obj.date.weekday()]
@@ -504,6 +505,8 @@ class AttendView(BaseView):
                 hours=obj.work_overtime.hour, minutes=obj.work_overtime.minute)
             if obj.work_time != datetime.time(0, 0, 0):
                 work_day_total += 1
+
+            car_fare += obj.carfare
 
             workday_month += 1
 
@@ -524,6 +527,11 @@ class AttendView(BaseView):
                             'minute': datetime.time(0, m)}
 
         url = self._get_url_info(request)
+        worktime_month = worktime + datetime.timedelta(
+            hours=userinfo.day_worktime.hour, minutes=userinfo.day_worktime.minute) * workday_month
+        worktime_month_hour = int((worktime_month.total_seconds() / 60) // 60)
+        worktime_month_minute = int(worktime_month.total_seconds() % (worktime_month.total_seconds() / 60))
+        worktime_month_t = str(worktime_month_hour) + ':' + str(worktime_month_minute).rjust(2, '0')
         params = {
             'request': request,
             'year': year,
@@ -531,7 +539,7 @@ class AttendView(BaseView):
             'workstatus': ws,
             'attend': attend,
             'workday_month': workday_month,
-            'workhour_month': workday_month*worktime,
+            'workhour_month': worktime_month_t,
             'workhour_day': worktime,
             'work_time_total': work_time_total,
             'work_day_total': work_day_total,
@@ -540,6 +548,7 @@ class AttendView(BaseView):
             'url_base': f'{request.scheme}://{request.get_host()}{request.path}',
             'host': url['host'],
             'protocol': url['protocol'],
+            'car_fare_total': car_fare,
         }
 
         url = "front/attend.html"

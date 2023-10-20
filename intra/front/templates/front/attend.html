@@ -22,22 +22,24 @@
                 <table class="uk-table uk-table-small uk-table-middle uk-table-hover">
                     <thead>
                         <tr>
-                            <th class="uk-width-1-6">日所定時間(h)</th>
-                            <th class="uk-width-1-6">月所定時間(h)</th>
+                            <th class="uk-width-1-6">日所定時間</th>
+                            <th class="uk-width-1-6">月所定時間</th>
                             <th class="uk-width-1-6">稼働時間</th>
                             <th class="uk-width-1-6">時間外</th>
                             <th class="uk-width-1-6">所定日数</th>
                             <th class="uk-width-1-6">稼働日数</th>
+                            <th class="uk-width-1-6">交通費計</th>
                         </tr>
                     </thead>
                     <tbody>
                         <tr>
-                            <td>{{workhour_day}}</td>
-                            <td>{{workhour_month}}</td>
-                            <td>{{work_time_total.hour}}:{{work_time_total.minute|date:"i"}}</td>
-                            <td>{{extra_hour_total.hour}}:{{extra_hour_total.minute|date:"i"}}</td>
+                            <td id="workTimeDay"></td>
+                            <td id="workTimeMonth"></td>
+                            <td id="totalWorkHour">{{work_time_total.hour}}:{{work_time_total.minute|date:'i'}}</td>
+                            <td id="totalOutWorkHour">{{extra_hour_total.hour}}:{{extra_hour_total.minute|date:"i"}}</td>
                             <td>{{workday_month}}</td>
                             <td>{{work_day_total}}</td>
+                            <td id="totalCarFare"></td>
                         </tr>
                     </tbody>
                 </table>
@@ -69,9 +71,9 @@
             <form action="{% url 'front:attend_register_day' year month forloop.counter %}" method="POST">
                 {% csrf_token %}
                 {% if value.holiday %}
-                <tr class="uk-background-holiday">
+                <tr class="uk-background-holiday" name="dayData">
                     {% else %}
-                <tr>
+                <tr name="dayData">
                     {% endif %}
 
                     <td name="date">{{ key }}</td>
@@ -107,8 +109,8 @@
                             class="uk-input"></td>
                     <td><input type="text" name="work_off" value="{{value.attend.work_off|date:'H:i'}}"
                             class="uk-input"></td>
-                    <td>{{ value.attend.work_time|date:"H:i"}}</td>
-                    <td>{{ value.attend.work_overtime|date:"H:i"}}</td>
+                    <td name="workTime">{{ value.attend.work_time|date:"H:i"}}</td>
+                    <td name="extraTime">{{ value.attend.work_overtime|date:"H:i"}}</td>
                     <td><input type="text" name="carfare" value="{{value.attend.carfare}}" class="uk-input"></td>
                     {% if value.attend.memo is None %}
                     <td><input type="text" name="memo" class="uk-input"></td>
@@ -130,29 +132,63 @@
 <script type="text/javascript">
 
     {% autoescape off %}
-    let year = {{ year }};
-    let month = {{ month }};
-    let protocol = "{{ protocol }}";
-    let host = "{{ host }}";
+    const year = {{ year }};
+    const month = {{ month }};
+    const protocol = "{{ protocol }}";
+    const host = "{{ host }}";
+    let totalWorkMinutes = parseInt("{{work_time_total.hour}}".split(':')[0])*60 + parseInt("{{work_time_total.hour}}".split(':')[1]);
+    let totalOutWorkMinutes = parseInt("{{extra_hour_total.hour}}".split(':')[0])*60 + parseInt("{{extra_hour_total.hour}}".split(':')[1]);
+    const DayworkMinutes = parseInt("{{workhour_day}}".split(':')[0])*60 + parseInt("{{workhour_day}}".split(':')[1]);
+    const workTimeDay = "{{workhour_day}}".split(':')[0] + ':' + "{{workhour_day}}".split(':')[1]
+    const workTimeMonth = "{{workhour_month}}".split(':')[0] + ':' + "{{workhour_month}}".split(':')[1]
     {% endautoescape %}
     const url = protocol + "://" + host;
-
-    function getCookie(name) {
-        let cookieValue = null;
-        if (document.cookie && document.cookie !== '') {
-            const cookies = document.cookie.split(';');
-            for (let i = 0; i < cookies.length; i++) {
-                const cookie = cookies[i].trim();
-                // Does this cookie string begin with the name we want?
-                if (cookie.substring(0, name.length + 1) === (name + '=')) {
-                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-                    break;
-                }
-            }
-        }
-        return cookieValue;
-    }
+    document.querySelector('#workTimeDay').innerHTML = workTimeDay;
+    document.querySelector('#workTimeMonth').innerHTML = workTimeMonth;
+    let totalCarFare = parseInt("{{car_fare_total}}");
+    document.querySelector('#totalCarFare').innerHTML = totalCarFare;
+    
     const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+
+    function zeroPlace(time, count) {
+        str = '';
+        for (let i = 0; i < count; i++) {
+            str += '0';
+        };
+        return (str + time).slice(0 - parseInt(count))
+    };
+
+    const update_total = async function (workAdd, OutWorkAdd){
+        totalWorkMinutes = 0;
+        totalOutWorkMinutes = 0;
+        totalCarFare = 0;
+        let WorkMinutes = 0;
+        let elems = document.querySelectorAll('[name=dayData]');
+        elems.forEach(function (elem) {
+            var start = new Date('2020-04-01 ' + elem.querySelector('[name=work_start]').value);
+            var end = new Date('2020-04-01 ' + elem.querySelector('[name=work_end]').value);
+            var off = elem.querySelector('[name=work_off]').value;
+            WorkMinutes = (end.getTime() - start.getTime()) / (60*1000);
+
+            var offMinute = parseInt(off.split(':')[0])*60 + parseInt(off.split(':')[1]);
+            WorkMinutes -= offMinute;
+
+            totalOutWorkMinutes += Math.max(0, WorkMinutes - DayworkMinutes);
+            totalWorkMinutes += WorkMinutes;
+
+            totalCarFare += parseInt(elem.querySelector('[name=carfare]').value);
+        });
+        
+
+        let displayWorkHour = ((totalWorkMinutes - totalWorkMinutes % 60) / 60);
+        let displayWorkMinute = zeroPlace((totalWorkMinutes % 60), 2);
+        let displayExtraHour = ((totalOutWorkMinutes - totalOutWorkMinutes % 60) / 60);
+        let displayExtraMinute = zeroPlace((totalOutWorkMinutes % 60), 2);
+
+        document.querySelector('#totalWorkHour').innerHTML = displayWorkHour + ':' + displayWorkMinute;
+        document.querySelector('#totalOutWorkHour').innerHTML = displayExtraHour + ':' + displayExtraMinute;
+        document.querySelector('#totalCarFare').innerHTML = totalCarFare;
+    };
 
     // 更新処理
     let update = async function (event) {
@@ -192,12 +228,30 @@
                 throw new Error(`HTTP error: ${response.status}`);
             }
 
+            update_total();
+            var start = new Date('2020-04-01 ' + targetRow.querySelector('[name=work_start]').value);
+            var end = new Date('2020-04-01 ' + targetRow.querySelector('[name=work_end]').value);
+            var off = targetRow.querySelector('[name=work_off]').value;
+            var WorkMinutes = (end.getTime() - start.getTime()) / (60*1000);
+            var offMinute = parseInt(off.split(':')[0])*60 + parseInt(off.split(':')[1]);
+            WorkMinutes -= offMinute;
+            var extraMinutes = Math.max(0, WorkMinutes - DayworkMinutes)
+
+            let workTimeHourDisplay = ((WorkMinutes - WorkMinutes % 60) / 60);
+            let workTimeMinutesDisplay = zeroPlace((WorkMinutes % 60), 2);
+            let extraTimeHourDisplay = ((extraMinutes - extraMinutes % 60) / 60);
+            let extraTimeMinutesDisplay = zeroPlace((extraMinutes % 60), 2);
+            targetRow.querySelector('[name=workTime]').innerHTML = workTimeHourDisplay + ':' + workTimeMinutesDisplay;
+            targetRow.querySelector('[name=extraTime]').innerHTML = extraTimeHourDisplay + ':' + extraTimeMinutesDisplay;
+            // totalCarFare += parseInt(carfare);
+            // document.querySelector('#totalCarFare').innerHTML = totalCarFare;
+
         } catch (error) {
             console.error(`Error: ${error}`);
         }
     };
 
-    let selectMonth = function (moveTo) {
+    const selectMonth = function (moveTo) {
 
         var dt = new Date(parseInt(year), parseInt(month) - 1, 1);
         if (moveTo == 'next') {

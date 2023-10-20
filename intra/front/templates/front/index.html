@@ -1,53 +1,90 @@
-{% extends "front/base_account.html" %}
+{% extends "front/base.html" %}
 {% block title %}ログイン{% endblock %}
 
 {% block content %}
-<h1>ログイン</h1>
 
-    <form action="?" method="POST">
-        <div class="container1">
-        {% csrf_token %}
-        {{ form.non_field_errors }}
-        {% for field in form %}
-            {{ field.label }}
-            <br>
-            {{ field }}
-            <br>
-            {{ field.error }}
-        {% endfor %}
 
-        <button type="submit" class="button register">ログイン</button>
-        <a href="{% url 'front:signup' %}" class="button register">新規登録</a>
+<div class="uk-container uk-position-center">
+    <h1 class="uk-text-center"><span>ログイン</span></h1>
+
+    <div class="uk-card uk-card-default uk-card-body">
+        <div class="uk-card-body uk-text-center">
+            <form action="?" method="POST">
+                {% csrf_token %}
+
+                <div>
+                    <input type="text" placeholder="ユーザID" name="username" autofocus="" autocapitalize="none" autocomplete="username"
+                        maxlength="150" class="uk-input" required="" id="id_username">
+                </div>
+                <br>
+                <div>
+                    <input type="password" placeholder="パスワード" name="password" autocomplete="current-password" class="uk-input" required=""
+                        id="id_password">
+                </div>
+                <br>
+
+                <button class="uk-button uk-button-primary uk-button-small" type="submit">ログイン</button>
+
+
+                <br>
+                <br>
+                <a href="{% url 'front:signup' %}" class="button register">新規登録</a>
+            </form>
         </div>
-        <input type="button" id="button" value="button"/>
-        <button id="button1" type="button">GETボタン</button>
-        <div id="resultGET"></div>
+    </div>
+</div>
 
-        <script>
-            $('#button1').on('click', function(){
-                // Ajax通信を開始
-                $.ajax({
-                    url: "{% url 'front:test' %}",
-                    method: "GET",
-                    // プレーンテキストを受信（他にはhtml、xml、script、json、jsonp等）
-                    dataType: 'text',
-                    // リクエストパラメータ「?param1=いろはに&param2=ほへと&param3=ちりぬるを」
-                    data: {
-                        param1: 'いろはに',
-                        param2: 'ほへと',
-                        param3: 'ちりぬるを '
-                    },
-                    timeout: 5000,
-                })
-                .done(function(data) {
-                    // 通信成功時の処理を記述
-                    $('#resultGET').text('GET処理成功' + data);
-                })
-                .fail(function() {
-                    // 通信失敗時の処理を記述
-                    $('#resultGET').text('GET処理失敗.');
-                });
+<!-- <form action="?" method="POST">
+        <div class="uk-grid-small uk-text-center" uk-grid>
+            <div class="uk-card uk-card-default uk-card-body">
+
+                <div class="uk-card-body">
+                    {% csrf_token %}
+                    {{ form.non_field_errors }}
+                    {% for field in form %}
+                    {{ field.label }}
+                    <br>
+                    {{ field }}
+                    <br>
+                    {{ field.error }}
+                    {% endfor %}
+                    <br>
+                    <button class="uk-button uk-button-primary uk-button-small" type="submit">ログイン</button>
+
+
+                    <br>
+                    <br>
+                    <a href="{% url 'front:signup' %}" class="button register">新規登録</a>
+                </div>
+            </div>
+        </div>
+    </form> -->
+</div>
+
+<script>
+    $('#button1').on('click', function () {
+        // Ajax通信を開始
+        $.ajax({
+            url: "{% url 'front:test' %}",
+            method: "GET",
+            // プレーンテキストを受信（他にはhtml、xml、script、json、jsonp等）
+            dataType: 'text',
+            // リクエストパラメータ「?param1=いろはに&param2=ほへと&param3=ちりぬるを」
+            data: {
+                param1: 'いろはに',
+                param2: 'ほへと',
+                param3: 'ちりぬるを '
+            },
+            timeout: 5000,
+        })
+            .done(function (data) {
+                // 通信成功時の処理を記述
+                $('#resultGET').text('GET処理成功' + data);
             })
-        </script>
-</form>
+            .fail(function () {
+                // 通信失敗時の処理を記述
+                $('#resultGET').text('GET処理失敗.');
+            });
+    })
+</script>
 {% endblock %}

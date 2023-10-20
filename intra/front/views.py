@@ -494,7 +494,6 @@ class AttendView(BaseView):
         for r in work_status_db:
             work_status[r.id] = r.holiday
 
-        logger.debug(work_status)
         for obj in d:
             day += 1
             weekday = WEEKDAYS[obj.date.weekday()]
@@ -508,7 +507,6 @@ class AttendView(BaseView):
 
             workday_month += 1
 
-            logger.debug(obj.work_status)
             attend[day] = {'attend': obj,
                            'weekday': weekday,
                            'holiday': work_status[obj.work_status],
@@ -626,8 +624,6 @@ def attend_info(request, *args, **kwargs) -> JsonResponse:
     tmp = WorkStatus.objects.filter(use=True)
     work_status = list(tmp.values())
 
-    print(request.user.id)
-    print(request.user)
     userinfo = UserSetting.objects.get(userid=request.user)
     worktime = userinfo.day_worktime.hour
 
@@ -664,7 +660,6 @@ class AttendRegisterDay(View):
         date = str(year)+"-"+str(month)+"-"+str(day)
 
         datas = json.loads(request.body)
-        logger.debug(datas)
 
         work_status = datas.get('work_status')
         work_detail = datas.get('work_detail')

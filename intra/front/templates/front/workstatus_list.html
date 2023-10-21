@@ -105,17 +105,6 @@
 
     const url = protocol + "://" + host;
 
-    let onoffHandler = function (event) {
-        let h = event.target;
-        let onText = h.getAttribute('on-text');
-        let offText = h.getAttribute('off-text');
-        if (h.textContent == onText) {
-            h.textContent = offText;
-        } else {
-            h.textContent = onText;
-        };
-    };
-
     function isStringEmpty(str) {
         if (!(str?.trim())) {
             return true;

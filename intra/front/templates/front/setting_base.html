@@ -1,55 +1,225 @@
 {% extends "front/base.html" %}
-{% block title %}{{tab}}{% endblock %}
-
-{% block header %}
-
-{% endblock %}
+{% block title %}{% endblock %}
 
 {% block content %}
 <br>
 
 <h1>{{title}}</h1>
-<form action="?" method="POST">
-    {% csrf_token %}
-    <table>
-        <thead>
-            <tr>
-                <th>削除</th>
-                {% for column in columns %}
-                    <th>{{column}}</th>
-                {% endfor %}
-            </tr>
-        </thead>
-        <tbody>
-            {% for d in data %}
-                <form name={{d.date}}>
+
+<div class="uk-container">
+    <div class="uk-container-small">
+        <form>
+            {% csrf_token %}
+            <h2>登録済み</h2>
+            <table class="uk-table uk-table-small uk-table-middle uk-table-hover">
+                <thead>
                     <tr>
-                        <td class="col_button"><button class="delete_button" type="submit">削除</button></td>
-                        <td><input type="date" name="date_{{ forloop.counter }}" value={{ d.date|date:"Y-m-d" }}></td>
-                        <td><input type="text" name="detail_{{ forloop.counter }}" value={{ d.detail }}></td>
+                        <th class="uk-width-btn-small"></th>
+                        <th class="uk-width-1-10">月</th>
+                        <th class="uk-width-1-10">日</th>
+                        <th>名称</th>
+                        <th>備考</th>
                     </tr>
-                </form>
-                {% endfor %}
-            <tr>
-                <td><button class="delete_button" type="submit">削除</button></td>
-                <td><input type="date" name="date_add_{{ forloop.counter }}"></td>
-                <td><input type="text" name="detail_add_{{ forloop.counter }}"></td>
-            </tr>
-        </tbody>
-    </table>
-    <button class="button_table_add_row" type="submit">+</button>
-    
-    <br>
-    <button type="submit">保存</button>
-</form>
+                </thead>
+                <tbody id="registerd">
+                </tbody>
+            </table>
 
+            <h2>新規登録</h2>
+            <table class="uk-table uk-table-small uk-table-middle uk-table-hover">
+                <thead>
+                    <tr>
+                        <th class="uk-width-btn-small"></th>
+                        <th class="uk-width-1-10">月</th>
+                        <th class="uk-width-1-10">日</th>
+                        <th>名称</th>
+                        <th>備考</th>
+                    </tr>
+                </thead>
+                <tbody id="new">
+                    <tr>
+                        <td><button class="uk-button uk-button-register uk-button-small" id="btnRegister"
+                                type="button">登録</button></td>
+                        <td>
+                            <div class="uk-margin">
+                                <label class="uk-form-label" for="monthSelector"></label>
+                                <div class="uk-form-controls">
+                                    <select class="uk-select" id="monthSelector">
+                                    </select>
+                                </div>
+                            </div>
+                        </td>
+                        <td>
+                            <div class="uk-margin">
+                                <label class="uk-form-label" for="daySelector"></label>
+                                <div class="uk-form-controls">
+                                    <select class="uk-select" id="daySelector">
+                                    </select>
+                                </div>
+                            </div>
+                        </td>
+                        <td><input class="uk-input" type="text" id="name"></td>
+                        <td><input class="uk-input" type="text" id="memo"></td>
+                    </tr>
+                </tbody>
+            </table>
+    </div>
+    </form>
 
+</div>
 
+<script type="text/javascript">
 
+    {% autoescape off %}
+    let protocol = "{{ protocol }}";
+    let host = "{{ host }}";
+    {% endautoescape %}
 
+    const url = protocol + "://" + host;
 
+    window.onload = function() {
+        document.querySelectorAll('[name=monthSelector]').forEach(function (m) {
+            setMonthSelector(m, '');
+            var val = m.value;
+            m.value = val;
+        });
+        document.querySelectorAll('[name=daySelector]').forEach(function (m) {
+            setDaySelector(m, '');
+            var val = m.value;
+            m.value = val;
+        });
+        setMonthSelector(document.querySelector('#monthSelector'), '');
+        setDaySelector(document.querySelector('#daySelector'), '');
+    };
+    function isStringEmpty(str) {
+        if (!(str?.trim())) {
+            return true;
+        };
+    };
+    const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]').value;
 
+    function createNewRow(month, day, name, memo) {
+        const newRow =
+            '<tr> \
+                <td><button class="uk-button uk-button-danger uk-button-small" name="btnDel" \
+                        type="button">削除</button></td> \
+                <td> \
+                    <div class="uk-margin"> \
+                        <label class="uk-form-label" for="monthSelector"></label> \
+                        <div class="uk-form-controls"> \
+                            <select disabled class="uk-select" name="monthSelector" value="' + month + '"> \
+                            </select> \
+                        </div> \
+                    </div> \
+                </td> \
+                <td> \
+                    <div class="uk-margin"> \
+                        <label class="uk-form-label" for="daySelector"></label> \
+                        <div class="uk-form-controls"> \
+                            <select disabled class="uk-select" name="daySelector" value="' + day + '"> \
+                            </select> \
+                        </div> \
+                    </div> \
+                </td> \
+                <td><input class="uk-input" type="text" name="name" value="' + name + '"></td> \
+                <td><input class="uk-input" type="text" name="memo" value="' + memo + '"></td> \
+            </tr>';
+        
+        return newRow;
+    };
+    const registerd = document.querySelector('#registerd');
 
+    function addRow(month, day, name, memo){
+        var row = createNewRow(month, day, name, memo);
+        registerd.insertAdjacentHTML('beforeend', row);
+        var new_tr = registerd.lastChild;
+        setMonthSelector(new_tr.querySelector('[name=monthSelector]'), '');
+        setDaySelector(new_tr.querySelector('[name=daySelector]'), '');
+        new_tr.querySelector('[name=monthSelector]').value = parseInt(month);
+        new_tr.querySelector('[name=daySelector]').value = parseInt(day);
+        new_tr.querySelector('[name=btnDel]').addEventListener('click', deleteHandler);
+        new_tr.querySelector('[name=name]').addEventListener('change', update);
+        new_tr.querySelector('[name=memo]').addEventListener('change', update);
+    };
 
+    // 登録処理
+    async function register() {
+
+        reg = document.querySelector('#new')
+
+        let month = reg.querySelector('#monthSelector').value;
+        let day = reg.querySelector('#daySelector').value;
+        let name = reg.querySelector('#name').value;
+        let memo = reg.querySelector('#memo').value;
+        let date = zeroPlace(month, 2) + zeroPlace(day, 2);
+
+        const data = {
+            name: name,
+            memo: memo
+        };
+
+        const response = await request(url + "/setting/holiday/" + date, "POST", data, csrftoken);
+        addRow(month, day, name, memo);
+    };
+
+    // 更新処理
+    let update = async function (event) {
+        let h = event.target;
+        let targetRow = h.parentElement.parentElement;
+        let month = targetRow.querySelector('[name=monthSelector]').value;
+        let day = targetRow.querySelector('[name=daySelector]').value;
+        let name = targetRow.querySelector('[name=name]').value;
+        let memo = targetRow.querySelector('[name=memo]').value;
+        let date = zeroPlace(month, 2) + zeroPlace(day, 2);
+
+        const data = {
+            name: name,
+            memo: memo
+        };
+
+        const response = await request(url + "/setting/holiday/" + date, "POST", data, csrftoken);
+    };
+
+    // 削除処理
+    let deleteHandler = async function (event) {
+        let h = event.target;
+        let month = h.parentElement.parentElement.querySelector('[name=monthSelector]').value;
+        let day = h.parentElement.parentElement.querySelector('[name=daySelector]').value;
+        month = zeroPlace(month, 2);
+        day = zeroPlace(day, 2);
+        let date = month + day
+        try {
+            const response = await request(url + "/setting/holiday/" + date, "DELETE", {}, csrftoken);
+            h.parentElement.parentElement.remove();
+
+        } catch (error) {
+            console.error(`Error: ${error}`);
+        }
+    };
+
+    const data = request(url + '/setting/holiday/info', 'GET', {}, csrftoken)
+    .then((data) => {
+        Object.keys(data).forEach(function (d) {
+            var date = data[d].date // yyyy-mm-dd
+            var month = date.split('-')[1];
+            var day = date.split('-')[2];
+            addRow(month, day, data[d].name, data[d].memo);
+        });
+    });
+
+    // 複数の要素にイベントリスナーを設定
+    let inputsUpd = document.querySelectorAll('[name=month], [name=day], [name=name], [name=memo]');
+    let btnRegister = document.querySelector('#btnRegister');
+    // let btnsDel = document.querySelectorAll('[name=btnDel]');
+
+    // btnsDel.forEach(function (button) {
+    //     button.addEventListener('click', deleteHandler);
+    // });
+    inputsUpd.forEach(function (button) {
+        button.addEventListener('change', update);
+    });
+    btnRegister.addEventListener('click', register);
+
+</script>
 
 {% endblock %}

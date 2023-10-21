@@ -1,4 +1,4 @@
-import os
+import json
 import logging
 
 from urllib.parse import urlencode
@@ -11,7 +11,7 @@ from django.shortcuts import render
 from django.contrib.auth.models import User
 from django.shortcuts import redirect
 from .models import WorkStatus, Holiday, UserSetting, Approval_format, Approval_format_route
-
+from django.forms.models import model_to_dict
 
 
 class SettingView(View):
@@ -76,8 +76,8 @@ class SettingBase(ListView):
 
     def post(self, request):
 
-       # 継承クラスで実装
-       pass
+        # 継承クラスで実装
+        pass
 
     def get(self, request):
 
@@ -143,7 +143,6 @@ class SettingWorkStatusView(SettingBase):
         # 初期設定
         self.callback_url = reverse_lazy('front:setting_work_status')
 
-        import json
         datas = json.loads(request.body)
 
         name_selection = datas.get('name')
@@ -206,46 +205,70 @@ class SettingHolidayView(SettingBase):
         data = Holiday.objects.all()
 
         columns = self._get_columns(Holiday)
+        url = self._get_url_info(request)
 
-        params = {'tab': '公休日設定',
-                  'title': '会社の休日設定',
-                  'data': data,
-                  'counter': (1, 2, 3, 4, 5),
-                  'columns': columns,
-                  }
+        params = {
+            'tab': '公休日設定',
+            'title': '会社の休日設定',
+            'data': data,
+            'columns': columns,
+            'host': url['host'],
+            'protocol': url['protocol'],
+        }
         return render(request, "front/setting_base.html", params)
 
-    def post(self, request):
 
-        # 更新処理
-        q = Holiday.objects.all()
+class SettingHolidayInfo(SettingBase):
 
-        # 既存更新分
-        cnt = q.count()
+    def get(self, request):
 
-        if cnt > 0:
-            for i in range(cnt):
-                b = Holiday(
-                    date=request.POST['date_'+str(i+1)],
-                    detail=request.POST['detail_'+str(i+1)],
-                )
-                b.save()
+        data = Holiday.objects.all()
+        rtn = list()
+        for d in data:
+            rtn.append(model_to_dict(d))
+        return JsonResponse(rtn, safe=False)
 
-        # 新規登録分
-        # 更新時にコードを変えたら重複する場合がある？
-        for i in range(5):
+class SettingHolidayByDate(SettingBase):
 
-            date = request.POST['date_add_'+str(i+1)]
-            detail = request.POST['detail_add_'+str(i+1)]
+    def delete(self, request, date):
+        date_valid = f'2000-{date[0]}{date[1]}-{date[2]}{date[3]}'
+        obj = Holiday.objects.get(date=date_valid)
+        obj.delete()
 
-            if date:
-                b = Holiday(
-                    date=date,
-                    detail=detail,
-                )
-                b.save()
+        data = {'result': True}
+        return JsonResponse(data)
 
-        return HttpResponseRedirect(self.success_url)  # リダイレクト
+    def post(self, request, date):
+
+        date_valid = f'2000-{date[0]}{date[1]}-{date[2]}{date[3]}'
+
+        obj = Holiday.objects.filter(date=date_valid)
+        params = json.loads(request.body)
+
+        name = params.get('name')
+        memo = params.get('memo')
+
+        # データ存在チェック＆取得
+        if obj.count() == 0:
+            # create
+            b = Holiday(
+                date=date_valid,
+                name=name,
+                memo=memo,
+            )
+            b.save()
+
+        else:
+            # update
+            obj = Holiday.objects.get(date=date_valid)
+
+            obj.date = date_valid
+            obj.name = name
+            obj.memo = memo
+            obj.save()
+
+        data = {'result': True} # 空だとjs側でエラーになるため
+        return JsonResponse(data)
 
 
 class SettingUserView(SettingBase):

@@ -1,6 +1,17 @@
-from django.urls import path
+from django.urls import register_converter, path
 from . import views
 from . import views_settings
+
+class NegativeIntConverter:
+    regex = '-?\d+'
+
+    def to_python(self, value):
+        return int(value)
+
+    def to_url(self, value):
+        return '%d' % value
+
+register_converter(NegativeIntConverter, 'negint')
 
 app_name = "front"
 urlpatterns = [
@@ -45,6 +56,10 @@ urlpatterns = [
          name="setting_work_status_by_id"),
     path("setting/holiday", views_settings.SettingHolidayView.as_view(),
          name="setting_holiday"),
+    path("setting/holiday/info", views_settings.SettingHolidayInfo.as_view(),
+         name="setting_holiday_info"),
+    path("setting/holiday/<str:date>", views_settings.SettingHolidayByDate.as_view(),
+         name="setting_holiday_by_date"),
     path("setting/user/",
          views_settings.SettingUserView.as_view(),
          name="setting_user"),

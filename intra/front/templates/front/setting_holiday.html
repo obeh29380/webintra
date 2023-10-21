@@ -6,53 +6,71 @@
 {% endblock %}
 
 {% block content %}
-<br>
-{{columns}}
-<div class="row">
-    <div class="col-md-auto px-5">
-        <h1>会社の休日設定</h1>
-    </div>
-</div>
-<div class="row">
-    <form action="?" method="POST">
-        {% csrf_token %}
-        <div class="col-md-auto px-5">
-            <table class="table table-bordered table-sm border-success" border="1">
-                <thead class="table-active" align="center" height="35">
+
+<div class="uk-container">
+    <div class="uk-container-small">
+        <form>
+            {% csrf_token %}
+            <h2>登録済み</h2>
+            <table class="uk-table uk-table-small uk-table-middle uk-table-hover">
+                <thead>
                     <tr>
-                        <th width="5">日付</th><th width="400">詳細</th>
+                        <th class="uk-width-btn-small"></th>
+                        <th class="uk-width-1-10" hidden="true">id</th>
+                        <th class="uk-width-1-6">date</th>
+                        <th class="uk-width-btn-small">名称</th>
+                        <th>備考</th>
                     </tr>
                 </thead>
-                <tbody>
-                    {% for d in data %}
-                        <tr>
-                            <td><input style="width:100%; box-sizing:border-box" type="date" name="date_{{ forloop.counter }}" value={{ d.date|date:"Y-m-d" }}></td>
-                            <td><input style="width:100%; box-sizing:border-box" type="text" name="detail_{{ forloop.counter }}" value={{ d.detail }}></td>
-                        </tr>
-                    {% endfor %}
-                    {% for d in counter %}
-                        {% if forloop.counter <= 5 %}
-                        <tr>
-                            <td><input style="width:100%; box-sizing:border-box" type="date" name="date_add_{{ forloop.counter }}"></td>
-                            <td><input style="width:100%; box-sizing:border-box" type="text" name="detail_add_{{ forloop.counter }}"></td>
-                        </tr>
+                <tbody id="registerd">
+                    {% for item in data %}
+                    <tr>
+                        <td><button class="uk-button uk-button-danger uk-button-small btn-delete"
+                                type="button">削除</button></td>
+                        <td name="id" hidden="true">{{ item.id }}</td>
+                        <td><input style="width:100%; box-sizing:border-box" type="date" name="date_{{ forloop.counter }}" value={{ d.date|date:"Y-m-d" }}></td>
+                        <td><input style="width:100%; box-sizing:border-box" type="text" name="detail_{{ forloop.counter }}" value={{ d.detail }}></td>
+                        <td>
+                            {%if item.memo == None %}
+                            <input class="uk-input" type="text" name="memo">
+                        </td>
+                        {%else%}
+                        <input class="uk-input" type="text" name="memo" value="{{ item.memo }}">
+                        </td>
                         {% endif %}
+                        </td>
+                    </tr>
                     {% endfor %}
                 </tbody>
             </table>
-            <br>
-            <button type="submit" class="btn btn-primary">保存</button>
-        </div>
+
+            <h2>新規登録</h2>
+            <table class="uk-table uk-table-small uk-table-middle uk-table-hover">
+                <thead>
+                    <tr>
+                        <th class="uk-width-btn-small"></th>
+                        <th class="uk-width-1-6">date</th>
+                        <th class="uk-width-btn-small">名称</th>
+                        <th>備考</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><button class="uk-button uk-button-register uk-button-small" id="btn-register"
+                                type="button">登録</button></td>
+                        <td><input style="width:100%; box-sizing:border-box" type="date" name="date_{{ forloop.counter }}" value={{ d.date|date:"Y-m-d" }}></td>
+                        <td><input class="uk-input" type="text" id="name-i"></td>
+                        <td><input class="uk-input" type="text" id="memo-i"></td>
+                    </tr>
+                </tbody>
+            </table>
+    </div>
     </form>
+
 </div>
 
+<script type="text/javascript">
 
-
-
-
-
-
-
-
+</script>
 
 {% endblock %}

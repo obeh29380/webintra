@@ -64,7 +64,8 @@ class WorkStatus(models.Model):
 
 class Holiday(models.Model):
     date = models.DateField(primary_key=True)
-    detail = models.CharField(max_length=50, null=True)
+    name = models.CharField(max_length=50, null=True)
+    memo = models.TextField(null=True)
 
     class Meta:
         db_table = "holiday"

@@ -15,18 +15,72 @@ function getNow() {
 }
 
 async function request(url, method, data, csrftoken) {
+
+    let param = {
+        method: method,   // GET POST PUT DELETEなど
+        headers: {
+            'X-CSRFToken': csrftoken,
+            'Content-Type': 'application/json'
+        }
+    };
+
+    if (!(method == 'GET')) {
+        param.body = JSON.stringify(data);
+    };
     try {
-        const response = await fetch(url, {
-            method: method,   // GET POST PUT DELETEなど
-            headers: {
-                'X-CSRFToken': csrftoken,
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(data)    // リクエスト本文をセット
-        });
-        return await response;
+        const response = await fetch(url, param);
+
+        if (!response.ok) {
+            alert('リクエストが失敗しました。' + '[ ' + response.status + ']' + '[ ' + response.statusText + ']')
+            throw new Error(`HTTP error: ${response.status}`);
+        };
+
+        return response.json();
 
     } catch (error) {
         console.error(`Error: ${error}`);
     }
+};
+
+let onoffHandler = function (event) {
+    let h = event.target;
+    let onText = h.getAttribute('on-text');
+    let offText = h.getAttribute('off-text');
+    if (h.textContent == onText) {
+        h.textContent = offText;
+    } else {
+        h.textContent = onText;
+    };
+};
+
+function setMonthSelector(selectElem, saffix=''){
+
+    while (selectElem.firstChild) {
+        selectElem.removeChild(selectElem.firstChild);
+    };
+    for (var i = 0; i < 12; i++){
+        var elem = document.createElement("option");
+        elem.setAttribute("value", i + 1);
+        elem.innerHTML = (i + 1) + saffix;
+        selectElem.appendChild(elem)
+    };
+};
+function setDaySelector(selectElem, saffix=''){
+    while (selectElem.firstChild) {
+        selectElem.removeChild(selectElem.firstChild);
+    };
+    for (var i = 0; i < 31; i++){
+        var elem = document.createElement("option");
+        elem.setAttribute("value", i + 1);
+        elem.innerHTML = (i + 1) + saffix;
+        selectElem.appendChild(elem)
+    };
+};
+
+function zeroPlace(time, count) {
+    str = '';
+    for (let i = 0; i < count; i++) {
+        str += '0';
+    };
+    return (str + time).slice(0 - parseInt(count))
 };

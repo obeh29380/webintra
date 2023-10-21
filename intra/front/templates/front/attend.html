@@ -150,13 +150,6 @@
     
     const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]').value;
 
-    function zeroPlace(time, count) {
-        str = '';
-        for (let i = 0; i < count; i++) {
-            str += '0';
-        };
-        return (str + time).slice(0 - parseInt(count))
-    };
 
     const update_total = async function (workAdd, OutWorkAdd){
         totalWorkMinutes = 0;

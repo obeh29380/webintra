@@ -1340,6 +1340,7 @@ button.uk-icon:not(:disabled) {
 .uk-select,
 .uk-textarea,
 .uk-radio,
+.uk-date,
 .uk-checkbox {
   /* 1 */
   box-sizing: border-box;
@@ -1438,6 +1439,7 @@ button.uk-icon:not(:disabled) {
  */
 .uk-input,
 .uk-select,
+.uk-date,
 .uk-textarea {
   /* 1 */
   max-width: 100%;
@@ -1460,6 +1462,7 @@ button.uk-icon:not(:disabled) {
  *    Also needed to center the text vertically
  */
 .uk-input,
+.uk-date,
 .uk-select:not([multiple]):not([size]) {
   height: 40px;
   vertical-align: middle;
@@ -1487,6 +1490,7 @@ button.uk-icon:not(:disabled) {
 }
 /* Focus */
 .uk-input:focus,
+.uk-date:focus,
 .uk-select:focus,
 .uk-textarea:focus {
   outline: none;
@@ -1496,6 +1500,7 @@ button.uk-icon:not(:disabled) {
 }
 /* Disabled */
 .uk-input:disabled,
+.uk-date:disabled,
 .uk-select:disabled,
 .uk-textarea:disabled {
   background-color: #f8f8f8;
@@ -1506,6 +1511,9 @@ button.uk-icon:not(:disabled) {
  * Placeholder
  */
 .uk-input::placeholder {
+  color: #999;
+}
+.uk-date::placeholder {
   color: #999;
 }
 .uk-textarea::placeholder {

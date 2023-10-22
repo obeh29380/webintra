@@ -1,3 +1,4 @@
+import datetime
 import json
 
 import jpholiday
@@ -25,16 +26,18 @@ def get_work_status_id(status):
             return i + 1
 
 
-def get_workStatus(date, user):
+def get_workStatus(date: datetime, user):
 
     # ユーザ毎の指定休日（初期値では土日）
     regHoli = UserSetting.objects.get(userid=user)
 
-    q = Holiday.objects.filter(date=date)
+    # Holidayは年月のみ管理で、年は2000固定なので変換して検索
+    date_for_holiday = date.replace(year=2000)
+    q = Holiday.objects.filter(date=date_for_holiday)
     if q.count() > 0:
         # 会社の休日
         for data in q:
-            name = data.detail
+            name = data.name
 
         work_status = {'status': get_work_status_id('HOLIDAY_COMPANY'),
                        'name': name,

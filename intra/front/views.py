@@ -545,7 +545,6 @@ class AttendView(BaseView):
             'work_day_total': work_day_total,
             'extra_hour_total': extra_hour_total,
             'work_time': obj.work_time,
-            'url_base': f'{request.scheme}://{request.get_host()}{request.path}',
             'host': url['host'],
             'protocol': url['protocol'],
             'car_fare_total': car_fare,
@@ -656,7 +655,6 @@ def attend_info(request, *args, **kwargs) -> JsonResponse:
 class AttendRegisterDay(View):
 
     """attend/<int:year>/<int:month>/<int:day>" に対応する処理
-
     """
 
     def post(self, request, *args, **kwargs):

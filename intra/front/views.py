@@ -4,10 +4,12 @@ import json
 import os
 from logging import getLogger
 
+from django.db import transaction
 from django.db.models import (
     Max,
     Min
 )
+from django.forms.models import model_to_dict
 from django.utils.timezone import make_aware
 from django.contrib.auth.models import User
 from django.http import (
@@ -89,10 +91,7 @@ class BaseView(View):
 
         host = request.get_host()
         protocol = request.headers['Referer'].split(':')[0]
-        return {
-            'host': host,
-            'protocol': protocol,
-        }
+        return f'{protocol}://{host}'
 
 class TopView(TemplateView):
     template_name = "front/top.html"
@@ -185,7 +184,7 @@ class HomeView(LoginRequiredMixin, TemplateView):
         return render(request, self.template_name, params)
 
 
-class ApprovalView(View):
+class ApprovalView(BaseView):
 
     def __init__(self):
         super().__init__()
@@ -196,48 +195,55 @@ class ApprovalView(View):
         field = Approval._meta._get_fields()
 
         # 未完了の決裁
-        data = Approval.objects.filter(userid=request.user, status__lt=8)
-
+        data = Approval.objects.filter(userid=request.user.id, status__lt=8).select_related('userid')
         approval = {}
         for obj in data:
 
-            q = Approval_route.objects.filter(approval_id=obj.id)
+            # q = Approval_route.objects.filter(approval_id=obj.id)
             status = MAP_APPROVAL_STATUS[obj.status]
 
             approval[obj.id] = {'approval': obj,
                                 'status': status,
-                                'route': q,
+                                'route': obj.related_route.all(),
                                 }
 
         # 完了済の決裁
         data_complete = Approval.objects.filter(status__gte=8)
         approval_complete = {}
         for obj in data_complete:
+            logger.debug(f'でいと{obj.date}/{obj.date_complete}')
+            logger.debug(model_to_dict(obj))
 
-            q = Approval_route.objects.filter(approval_id=obj.id)
+            # q = Approval_route.objects.filter(approval_id=obj.id)
             status = MAP_APPROVAL_STATUS[obj.status]
 
-            approval_complete[obj.id] = {'approval': obj,
+            # なぜかdateだけmodel_to_dictのとき抜け落ちるので、自分で入れる（多分migrateで関連付けが失敗してる）
+            obj_dict = model_to_dict(obj)
+            obj_dict['date'] = obj.date
+
+            approval_complete[obj.id] = {'approval': obj_dict,
                                          'status': status,
-                                         'route': q,
+                                         'route': obj.related_route.all(),
                                          }
 
         # 決裁ルートに自身がいて、かつ自身の決裁待ちであるデータを抽出
-        q = Approval_route.objects.filter(userid=request.user, status=2)
+        q = Approval_route.objects.filter(userid=request.user.id, status=2)
         need_check = {}
         for obj in q:
-            need_check[obj.approval_id] = Approval.objects.get(
-                id=obj.approval_id)
+            # need_check[obj.approval_id] = Approval.objects.get(
+            #     id=obj.approval_id)
+            need_check[obj.approval.id] = obj.approval
+
 
         params = {'message': '一覧',
                   'data': data,
-                  'counter': (1, 2, 3, 4, 5),
                   'field': field,
                   'user': request.user,
                   'approval': approval,
                   'approval_complete': approval_complete,
                   'page_approval': 1,
                   'need_check': need_check,
+                  'base_url': self._get_url_info(request)
                   }
 
         return render(request, self.template_name, params)
@@ -269,7 +275,6 @@ class NewApprovalView(View):
 
         params = {'title': title,
                   'data': data,
-                  'counter': (1, 2, 3, 4, 5),
                   'user': request.user,
                   'page_approval': 1,
                   'format_all': format_all,
@@ -282,34 +287,39 @@ class NewApprovalView(View):
 
     def post(self, request, id, *args, **kwargs):
 
-        b = Approval(
-            userid=request.user,
-            title=request.POST['title'],
-            detail=request.POST['detail'],
-        )
-        b.save()
+        datas = json.loads(request.body)
+        user = User.objects.get(id=request.user.id)
 
-        id = Approval.objects.all().order_by("-id")[0].id
-
-        # route
-        s = request.POST['route']
-        route = s.split(',')
-
-        for cnt, username in enumerate(route):
-
-            if cnt == 0:
-                status = MAP_APPROVAL_STATUS_CODE['MYTURN']
-            else:
-                status = MAP_APPROVAL_STATUS_CODE['WAITMYTURN']
-
-            b = Approval_route(
-                approval_id=id,
-                userid=username,
-                status=status,
+        with transaction.atomic():
+            b = Approval(
+                userid=user,
+                title=datas.get('title'),
+                detail=datas.get('detail'),
+                date=datetime.date.today(),
             )
             b.save()
 
-        return HttpResponseRedirect(self.success_url)  # リダイレクト
+            new_approval = Approval.objects.all().order_by("-id")[0]
+            # id = new_approval.id
+
+            # route
+            route = datas.get('route')
+
+            for cnt, username in enumerate(route):
+
+                if cnt == 0:
+                    status = MAP_APPROVAL_STATUS_CODE['MYTURN']
+                else:
+                    status = MAP_APPROVAL_STATUS_CODE['WAITMYTURN']
+
+                b = Approval_route(
+                    approval=new_approval,
+                    userid=user,
+                    status=status,
+                )
+                b.save()
+
+        return JsonResponse({'reload': True})
 
 
 class Approval_checkView(View):
@@ -320,56 +330,49 @@ class Approval_checkView(View):
     def get(self, request, id, *args, **kwargs):
 
         data = Approval.objects.get(id=id)
-        format_name = data.title
-        route = Approval_route.objects.filter(approval_id=id)
-
-        title = '決裁承認'
-
-        params = {'title': title,
-                  'data': data,
-                  'user': request.user,
-                  'page_approval': 1,
-                  'format_name': format_name,
-                  'route': route,
-                  'check': 1
-                  }
-        return render(request, "front/approval_detail.html", params)
+        approval_route = data.related_route
+        route = list()
+        for r in approval_route.all():
+            route.append(
+                dict(name=f'{r.userid.last_name}{r.userid.first_name}'))
+        return JsonResponse({
+            'data': model_to_dict(data),
+            'route': route,
+            })
 
     def post(self, request, id, *args, **kwargs):
 
-        route_tmp = Approval_route.objects.filter(
-            approval_id=id, status=MAP_APPROVAL_STATUS_CODE['MYTURN'], userid=request.user).aggregate(Min('id'))
-        route = Approval_route.objects.get(id=route_tmp['id__min'])
+        with transaction.atomic():
+            datas = json.loads(request.body)
+            user = User.objects.get(id=request.user.id)
+            status = datas.get('status')
+            target_approval = Approval.objects.get(id=id)
+            target_approval_route = target_approval.related_route.get(
+                status=MAP_APPROVAL_STATUS_CODE['MYTURN'], userid=user)
 
-        if 'btn_approve' in request.POST:
-            status = MAP_APPROVAL_STATUS_CODE['APPROVED']
-        elif 'btn_reject' in request.POST:
-            status = MAP_APPROVAL_STATUS_CODE['REJECTED']
-        else:
-            status = MAP_APPROVAL_STATUS_CODE['WAITMYTURN']
+            if status != 0:
+                target_approval_route.status = status
+                target_approval_route.approved_date = datetime.date.today()
+                target_approval_route.save()
 
-        if status != 0:
-            route.status = status
-            route.approved_date = datetime.date.today()
-            route.save()
+                next_route_tmp = target_approval.related_route.filter(status=MAP_APPROVAL_STATUS_CODE['WAITMYTURN']).order_by("-id")
 
-            # 最終か？
-            next_route_tmp = Approval_route.objects.filter(id=route.id + 1)
-            if next_route_tmp.count() == 0 or \
-                    status == MAP_APPROVAL_STATUS_CODE['REJECTED']:
+                logger.debug('でばっぐ')
+                logger.debug(next_route_tmp)
+                if next_route_tmp.count() == 0 or \
+                        status == MAP_APPROVAL_STATUS_CODE['REJECTED']:
 
-                # 最終か却下された場合、決裁ステータスを更新する
-                approval = Approval.objects.get(id=id)
-                approval.status = status
-                approval.save()
-            else:
+                    # 最終か却下された場合、決裁ステータスを更新する
+                    target_approval.status = status
+                    target_approval.date_complete = datetime.date.today()
+                    target_approval.save()
+                else:
 
-                # 次の人の承認ステータスも承認待ちに更新
-                next_route = Approval_route.objects.get(id=route.id + 1)
-                next_route.status = MAP_APPROVAL_STATUS_CODE['MYTURN']
-                next_route.save()
+                    # 次の人の承認ステータスも承認待ちに更新
+                    next_route_tmp[0].status = MAP_APPROVAL_STATUS_CODE['MYTURN']
+                    next_route_tmp[0].save()
 
-        return HttpResponseRedirect(self.success_url)  # リダイレクト
+        return JsonResponse({'reload': True})
 
 
 class BoardView(View):
@@ -526,7 +529,6 @@ class AttendView(BaseView):
         extra_hour_total = {'hour': h+d*24,
                             'minute': datetime.time(0, m)}
 
-        url = self._get_url_info(request)
         worktime_month = worktime + datetime.timedelta(
             hours=userinfo.day_worktime.hour, minutes=userinfo.day_worktime.minute) * workday_month
         worktime_month_hour = int((worktime_month.total_seconds() / 60) // 60)
@@ -545,13 +547,36 @@ class AttendView(BaseView):
             'work_day_total': work_day_total,
             'extra_hour_total': extra_hour_total,
             'work_time': obj.work_time,
-            'host': url['host'],
-            'protocol': url['protocol'],
+            'base_url': self._get_url_info(request),
             'car_fare_total': car_fare,
         }
 
         url = "front/attend.html"
         return render(request, url, params)
+    
+    def delete(self, request, year, month):
+        """指定された月の出勤簿を初期化する。
+        """
+
+        
+        day = int(request.POST.get('day', default=0))
+
+        if day == 0:
+            Attendance.objects.filter(
+                userid=request.user,
+                date__year=year,
+                date__month=month
+            ).delete()
+
+        else:
+            Attendance.objects.filter(
+                userid=request.user,
+                date__year=year,
+                date__month=month,
+                date__day=day
+            ).delete()
+
+        return JsonResponse({'result': True})
 
 
 def get_attendance_info(user_id, year, month):
@@ -646,7 +671,6 @@ def attend_info(request, *args, **kwargs) -> JsonResponse:
         'work_time_total': attend_infos['work_time_total'],
         'work_day_total': attend_infos['work_day_total'],
         'extra_hour_total': attend_infos['extra_hour_total'],
-        'url_base': f'{request.scheme}://{request.get_host()}{request.path}'
     }
 
     return JsonResponse(data=params)
@@ -729,40 +753,18 @@ class AttendRegisterDay(View):
         return JsonResponse(data)
 
 
+class UserInfo(View):
+
+    def get(self, request, *args, **kwargs):
+
+        users = User.objects.filter(
+            is_active=True)
         
-class AttendDelete(View):
+        rtn = list()
+        for user in users:
+            rtn.append(model_to_dict(user))
 
-    """attend/delete" に対応する処理
-        パラメータで日付の指定が無ければ、指定年月分を削除、
-        日付の指定があれば、その日の分のみ削除する。
-    """
-
-    def post(self, request, *args, **kwargs):
-        """出勤簿の更新処理。
-
-        """
-
-        success_url = reverse_lazy('front:attend')
-        year = int(request.POST.get('year'))
-        month = int(request.POST.get('month'))
-        day = int(request.POST.get('day', default=0))
-
-        if day == 0:
-            Attendance.objects.filter(
-                userid=request.user,
-                date__year=year,
-                date__month=month
-            ).delete()
-
-        else:
-            Attendance.objects.filter(
-                userid=request.user,
-                date__year=year,
-                date__month=month,
-                date__day=day
-            ).delete()
-
-        return HttpResponseRedirect(success_url)  # リダイレクト
+        return JsonResponse({'users': rtn})
 
 
 class LoginView(LoginView):

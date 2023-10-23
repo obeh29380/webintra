@@ -2,6 +2,41 @@
 {% block title %}ホーム{% endblock %}
 
 {% block content %}
-    <p>{{ user.username }}さん、こんにちは。</p>
-    
+<p>{{ user.username }}さん、こんにちは。</p>
+
+<hr>
+<div class="uk-container">
+    <div class="uk-card uk-card-default uk-card-body">
+
+        <div class="uk-card-head">
+            <h2>要承認(自分の承認待ち)</h2>
+        </div>
+
+        <div class="uk-card-body">
+            <table class="uk-table uk-table-small uk-table-middle uk-table-hover">
+                <thead>
+                    <tr>
+                        <th class="uk-width-1-10"></th>
+                        <th class="uk-width-1-10" hidden="true"></th>
+                        <th class="uk-width-1-5">title</th>
+                        <th class="uk-width-1-6">起草者</th>
+                        <th class="uk-width-1-6">上申日</th>
+                    </tr>
+                </thead>
+                <tbody id="MustCheck">
+                    {% for key, value in need_check.items %}
+                    <tr>
+                        <td><button class="uk-button uk-button-primary uk-button-small" name="btnCheck" \
+                                type="button">確認</button></td>
+                        <td name="id" hidden="true">{{value.id}}</td>
+                        <td>{{value.title}}</td>
+                        <td>{{value.userid}}</td>
+                        <td>{{value.date}}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
 {% endblock %}

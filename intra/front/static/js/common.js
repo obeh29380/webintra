@@ -84,3 +84,11 @@ function zeroPlace(time, count) {
     };
     return (str + time).slice(0 - parseInt(count))
 };
+
+function defaultStr(str, default_word) {
+    if (str == ''){
+        return default_word;
+    };
+
+    return str ?? default_word;
+};

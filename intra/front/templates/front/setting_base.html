@@ -210,11 +210,6 @@
     // 複数の要素にイベントリスナーを設定
     let inputsUpd = document.querySelectorAll('[name=month], [name=day], [name=name], [name=memo]');
     let btnRegister = document.querySelector('#btnRegister');
-    // let btnsDel = document.querySelectorAll('[name=btnDel]');
-
-    // btnsDel.forEach(function (button) {
-    //     button.addEventListener('click', deleteHandler);
-    // });
     inputsUpd.forEach(function (button) {
         button.addEventListener('change', update);
     });

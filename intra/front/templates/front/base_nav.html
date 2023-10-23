@@ -18,7 +18,7 @@
             <a id="{% url 'front:home' %}" href="{% url 'front:home' %}">Home</a>
           </li>
           <li>
-            <a id="{% url 'front:attend' %}" href="#" onclick="moveToAttend()">勤怠入力</a>
+            <a id="" href="#" onclick="moveToAttend()">勤怠入力</a>
           </li>
           <li>
             <a id="{% url 'front:board_menu' %}" href="{% url 'front:board_menu' %}">掲示板</a>
@@ -68,7 +68,7 @@
   var baseMonth = today.getMonth() + 1;
 
   function moveToAttend() {
-    location.href = "{% url 'front:attend' %}" + "/" + baseYear + "/" + baseMonth;
+    location.href = "{% url 'front:attend' 91 92 %}".replace(/91/, baseYear).replace(/92/, baseMonth);
   };
 </script>
 {% endblock %}

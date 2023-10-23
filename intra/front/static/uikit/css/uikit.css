@@ -3132,6 +3132,10 @@ select.uk-form-width-xsmall {
   background-color: #f0506e;
   color: #fff;
 }
+.uk-label-clear {
+  background-color: #4a4a4a;
+  color: #fff;
+}
 /* ========================================================================
    Component: Overlay
  ========================================================================== */
@@ -7819,6 +7823,12 @@ iframe[data-uk-cover] {
 }
 .uk-background-holiday {
   background-color: #edc5ee5d;
+}
+.uk-background-denied {
+  background-color: #ffbcbc;
+}
+.uk-background-approved {
+  background-color: #bcffcc;
 }
 /* Size
  ========================================================================== */

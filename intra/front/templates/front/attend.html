@@ -48,7 +48,13 @@
     </div>
 </div>
 
-<div class="itemD">
+<hr>
+<div class="uk-container">
+    <button class="uk-button uk-button-danger uk-button" id="btnClear"
+                                type="button">初期化</button>
+</div>
+
+<div class="uk-container">
     <table class="uk-table uk-table uk-table-middle uk-table-hover">
         <thead>
             <tr>
@@ -141,8 +147,8 @@
     const DayworkMinutes = parseInt("{{workhour_day}}".split(':')[0])*60 + parseInt("{{workhour_day}}".split(':')[1]);
     const workTimeDay = "{{workhour_day}}".split(':')[0] + ':' + "{{workhour_day}}".split(':')[1]
     const workTimeMonth = "{{workhour_month}}".split(':')[0] + ':' + "{{workhour_month}}".split(':')[1]
+    const url = "{{ base_url }}";
     {% endautoescape %}
-    const url = protocol + "://" + host;
     document.querySelector('#workTimeDay').innerHTML = workTimeDay;
     document.querySelector('#workTimeMonth').innerHTML = workTimeMonth;
     let totalCarFare = parseInt("{{car_fare_total}}");
@@ -244,6 +250,23 @@
         }
     };
 
+    function clearCurrentMonth(){
+        let checkFlg = window.confirm(year + '年' + month + '月分の出勤簿を初期化します。よろしいですか？');
+        if (!(checkFlg)){
+            return;
+        };
+
+        const data = {
+        };
+
+        try {
+            const response = request(url + "/attend/" + year + "/" + month, "DELETE", data, csrftoken);
+            location.href = "{% url 'front:attend' 91 92 %}".replace(/91/, year).replace(/92/, month);
+        } catch (error) {
+            console.error(`Error: ${error}`);
+        }
+    };
+
     const selectMonth = function (moveTo) {
 
         var dt = new Date(parseInt(year), parseInt(month) - 1, 1);
@@ -263,6 +286,8 @@
     inputs.forEach(function (input) {
         input.addEventListener('change', update);
     });
+
+    document.querySelector('#btnClear').addEventListener('click', clearCurrentMonth)
 
 </script>
 {% endblock %}

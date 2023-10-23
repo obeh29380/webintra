@@ -1,4 +1,7 @@
+from datetime import datetime
+
 from django.db import models
+from django.contrib.auth.models import User
 
 
 class BaseManager(models.Manager):
@@ -89,8 +92,9 @@ class UserSetting(models.Model):
 
 
 class Approval(models.Model):
-    userid = models.CharField(max_length=20, null=True)
+    userid = models.ForeignKey(User, db_column='user_id', on_delete=models.DO_NOTHING)
     date = models.DateField(auto_now_add=True)
+    date_complete = models.DateField(default=datetime.now)
     title = models.CharField(max_length=100, null=True)
     detail = models.TextField()
     status = models.IntegerField(default=0)
@@ -101,8 +105,9 @@ class Approval(models.Model):
 
 
 class Approval_route(models.Model):
-    approval_id = models.IntegerField()
-    userid = models.CharField(max_length=20)
+    id = models.AutoField(primary_key=True)
+    approval = models.ForeignKey(Approval, db_column='approval', on_delete=models.CASCADE, related_name='related_route', null=True)
+    userid = models.ForeignKey(User, db_column='user_id', on_delete=models.DO_NOTHING)
     approved_date = models.DateField(null=True)
     status = models.IntegerField(default=0)
 

@@ -211,8 +211,6 @@ class ApprovalView(BaseView):
         data_complete = Approval.objects.filter(status__gte=8)
         approval_complete = {}
         for obj in data_complete:
-            logger.debug(f'でいと{obj.date}/{obj.date_complete}')
-            logger.debug(model_to_dict(obj))
 
             # q = Approval_route.objects.filter(approval_id=obj.id)
             status = MAP_APPROVAL_STATUS[obj.status]
@@ -357,8 +355,6 @@ class Approval_checkView(View):
 
                 next_route_tmp = target_approval.related_route.filter(status=MAP_APPROVAL_STATUS_CODE['WAITMYTURN']).order_by("-id")
 
-                logger.debug('でばっぐ')
-                logger.debug(next_route_tmp)
                 if next_route_tmp.count() == 0 or \
                         status == MAP_APPROVAL_STATUS_CODE['REJECTED']:
 

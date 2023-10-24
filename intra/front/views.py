@@ -1,13 +1,13 @@
 import calendar
 import datetime
 import json
-import os
 from logging import getLogger
+import os
+import requests
 
 from django.db import transaction
 from django.db.models import (
     Max,
-    Min
 )
 from django.forms.models import model_to_dict
 from django.utils.timezone import make_aware
@@ -20,7 +20,6 @@ from django.http import (
 from django.contrib.auth import login
 from django.contrib.auth.views import (
     LoginView,
-    LogoutView
 )
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.views.generic import (
@@ -33,7 +32,6 @@ from django.views.generic.edit import (
 )
 from django.shortcuts import render
 from django.urls import reverse_lazy
-import requests
 
 from . import forms
 from .common import (
@@ -56,7 +54,6 @@ from .models import (
     Approval_format,
     Approval_format_route,
     Board,
-    Chat
 )
 
 logger = getLogger(__name__)
@@ -96,7 +93,6 @@ class BaseView(View):
 class TopView(TemplateView):
     template_name = "front/top.html"
 
-
 def exec_ajax(request):
     if request.method == 'GET':  # GETの処理
         param1 = request.GET.get("param1")  # GETパラメータ1
@@ -107,78 +103,13 @@ def exec_ajax(request):
         data1 = request.POST.get("input_data")  # POSTで渡された値
         return HttpResponse(data1)
 
-
-class ChatInfo(View):
-
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-        self.template_name = 'front/chat_main.html'
-
-    def get(self, request, *args, **kwargs):
-        params = {"message": "",
-                  }
-        return render(request, self.template_name, params)
-
-    def post(self, request, *args, **kwargs):
-        data1 = request.POST.get("param1")
-        return HttpResponse(data1)
-
-
-class ChatRoom(View):
-
-    def get(self, request, room_id, *args, **kwargs):
-
-        chat = Chat.objects.filter(
-            room_id=room_id).order_by('created_datetime')
-
-        params = {"message": "ApprovalView:Get処理",
-                  "page_home": 1,
-                  "room_id": room_id,
-                  "data": chat
-                  }
-        return render(request, "front/chat_room.html", params)
-
-    def post(self, request, room_id, *args, **kwargs):
-        room_id = request.POST.get("room_id")
-        chat = Chat(
-            author_id=request.user,
-            room_id=room_id,
-            text=request.POST.get("text"),
-        )
-        chat.save()
-
-        call_back = reverse_lazy(
-            'front:chat_room', kwargs={"room_id": room_id})
-        return HttpResponseRedirect(call_back)  # リダイレクト
-
-
 class HomeView(LoginRequiredMixin, TemplateView):
 
-    def __init__(self):
-        super().__init__()
-        self.template_name = 'front/home.html'
+    template_name = 'front/home.html'
 
     def get(self, request):
 
-        whether_token = os.getenv("weather_token")
-        data = None
-
-        if whether_token:
-            # URLの設定
-            url = 'https://api.openweathermap.org/data/2.5/weather'
-            # パラメータの設定
-            param = {
-                "content-type": "application/json",
-                "lat": 34.587411,
-                "lon": 133.874795,
-                "appid": os.getenv("weather_token")}
-
-            # Responseオブジェクトの生成
-            res = requests.get(url, params=param)
-            data = res.json()
-
         params = {"message": "",
-                  'weather': data
                   }
 
         return render(request, self.template_name, params)
@@ -186,9 +117,7 @@ class HomeView(LoginRequiredMixin, TemplateView):
 
 class ApprovalView(BaseView):
 
-    def __init__(self):
-        super().__init__()
-        self.template_name = 'front/approval.html'
+    template_name = 'front/approval.html'
 
     def get(self, request):
 
@@ -249,40 +178,6 @@ class ApprovalView(BaseView):
 
 class NewApprovalView(View):
 
-    '''新規決裁画面用'''
-    success_url = reverse_lazy('front:approval')
-
-    def get(self, request, id, *args, **kwargs):
-
-        if id != 0:
-            data = Approval_format.objects.get(id=id)
-            format_name = data.title
-            route = Approval_format_route.objects.filter(format_id=id)
-
-            upd = True
-        else:
-            data = ''
-            format_name = ''
-            route = ''
-            upd = False
-
-        title = '新規決裁'
-
-        format_all = Approval_format.objects.all()
-        user_all = User.objects.all()
-
-        params = {'title': title,
-                  'data': data,
-                  'user': request.user,
-                  'page_approval': 1,
-                  'format_all': format_all,
-                  'format_name': format_name,
-                  'route': route,
-                  'upd': upd,
-                  'user_all': user_all,
-                  }
-        return render(request, "front/approval_format_new.html", params)
-
     def post(self, request, id, *args, **kwargs):
 
         datas = json.loads(request.body)
@@ -322,22 +217,6 @@ class NewApprovalView(View):
 
 class Approval_checkView(View):
 
-    '''決裁承認画面'''
-    success_url = reverse_lazy('front:approval')
-
-    def get(self, request, id, *args, **kwargs):
-
-        data = Approval.objects.get(id=id)
-        approval_route = data.related_route
-        route = list()
-        for r in approval_route.all():
-            route.append(
-                dict(name=f'{r.userid.last_name}{r.userid.first_name}'))
-        return JsonResponse({
-            'data': model_to_dict(data),
-            'route': route,
-            })
-
     def post(self, request, id, *args, **kwargs):
 
         with transaction.atomic():
@@ -357,13 +236,11 @@ class Approval_checkView(View):
 
                 if next_route_tmp.count() == 0 or \
                         status == MAP_APPROVAL_STATUS_CODE['REJECTED']:
-
                     # 最終か却下された場合、決裁ステータスを更新する
                     target_approval.status = status
                     target_approval.date_complete = datetime.date.today()
                     target_approval.save()
                 else:
-
                     # 次の人の承認ステータスも承認待ちに更新
                     next_route_tmp[0].status = MAP_APPROVAL_STATUS_CODE['MYTURN']
                     next_route_tmp[0].save()
@@ -382,13 +259,7 @@ class BoardView(View):
                   'page_board': 1,
                   }
 
-        return render(request, "front/board_menu.html", params)
-
-    def post(self, request):
-        params = {"message": "BoardView:Post処理",
-                  "page_board": 1,
-                  }
-        return render(request, "front/board_menu.html", params)
+        return render(request, "front/board.html", params)
 
 
 class Board_detailView(View):

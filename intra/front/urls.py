@@ -41,8 +41,6 @@ urlpatterns = [
          views.signup_Register.as_view(),
          name='signup_register'),
     path("tools", views.ToolsView.as_view(), name="tools"),
-    path("chat", views.ChatInfo.as_view(), name="chat"),
-    path("chat/<room_id>", views.ChatRoom.as_view(), name="chat_room"),
     path("setting", views_settings.SettingView.as_view(), name="setting"),
     path("setting/work_status", views_settings.SettingWorkStatusView.as_view(),
          name="setting_work_status"),

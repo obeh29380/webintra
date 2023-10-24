@@ -1,0 +1,331 @@
+{% extends "front/base_nav.html" %}
+{% block title %}掲示板{% endblock %}
+
+{% block head %}
+{% csrf_token %}
+{% endblock %}
+
+{% block content %}
+
+
+<hr>
+<div class="uk-container">
+
+  <div class="uk-card uk-card-default uk-card-body">Category Sort</div>
+  <hr>
+
+  <div class="uk-grid-small uk-child-width-expand@s uk-text-center" uk-grid>
+
+  <div>
+    <a href="#" class="uk-display-block uk-card uk-card-body uk-card-default uk-link-toggle uk-width-medium">
+      <div class="uk-card-header">
+          <div class="uk-grid-small uk-flex-middle" uk-grid>
+              <div class="uk-width-auto">
+                  <img class="uk-border-circle" width="40" height="40" src="images/image.jpg" alt="image">
+              </div>
+              <div class="uk-width-expand">
+                  <h3 class="uk-card-title uk-margin-remove-bottom">Title</h3>
+                  <p class="uk-text-meta uk-margin-remove-top"><time datetime="2016-04-01T19:00">April 01, 2016</time></p>
+              </div>
+          </div>
+      </div>
+      <div class="uk-card-body">
+          <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt.</p>
+      </div>
+    </a>
+  </div>
+
+  <div>
+    <a href="#" class="uk-display-block uk-card uk-card-body uk-card-default uk-link-toggle uk-width-medium">
+      <div class="uk-card-header">
+          <div class="uk-grid-small uk-flex-middle" uk-grid>
+              <div class="uk-width-auto">
+                  <img class="uk-border-circle" width="40" height="40" src="images/image.jpg" alt="image">
+              </div>
+              <div class="uk-width-expand">
+                  <h3 class="uk-card-title uk-margin-remove-bottom">Title</h3>
+                  <p class="uk-text-meta uk-margin-remove-top"><time datetime="2016-04-01T19:00">April 01, 2016</time></p>
+              </div>
+          </div>
+      </div>
+      <div class="uk-card-body">
+          <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt.</p>
+      </div>
+    </a>
+  </div>
+
+  <div>
+
+    <a href="#" class="uk-display-block uk-card uk-card-body uk-card-default uk-link-toggle uk-width-medium">
+      <div class="uk-card-header">
+          <div class="uk-grid-small uk-flex-middle" uk-grid>
+              <div class="uk-width-auto">
+                  <img class="uk-border-circle" width="40" height="40" src="images/image.jpg" alt="image">
+              </div>
+              <div class="uk-width-expand">
+                  <h3 class="uk-card-title uk-margin-remove-bottom">Title</h3>
+                  <p class="uk-text-meta uk-margin-remove-top"><time datetime="2016-04-01T19:00">April 01, 2016</time></p>
+              </div>
+          </div>
+      </div>
+      <div class="uk-card-body">
+          <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt.</p>
+      </div>
+    </a>
+  </div>
+
+  <!-- モーダルテンプレート -->
+  <div id="modal-format" uk-modal bg-close=false>
+    <div class="uk-modal-dialog">
+
+      <button class="uk-modal-close-default" type="button" id="exitFormat" uk-close></button>
+
+      <div class="uk-modal-header">
+        <h2 class="uk-modal-title" id="format-title"></h2>
+      </div>
+
+      <div hidden=true id="approval-id"></div>
+
+      <div class="uk-modal-body" uk-overflow-auto>
+
+        <div uk-form-custom="target: > * > span:first-child">
+          <select id="format" aria-label="Custom controls">
+            <option value="">ひな形選択（オプション）</option>
+          </select>
+          <button class="uk-button uk-button-small" type="button" tabindex="-1">
+            <span></span>
+            <span uk-icon="icon: chevron-down"></span>
+          </button>
+        </div>
+
+        <h3>名目</h3>
+        <input type="text" id="title" class="uk-input">
+        <div hidden=true class="uk-alert uk-alert-danger" id="alert-title"></div>
+
+        <h3>詳細</h3>
+        <textarea type="text" id="detail" class="uk-textarea" rows="5"></textarea>
+        <div hidden=true class="uk-alert uk-alert-danger" id="alert-detail"></div>
+
+        <h3>ルート</h3>
+        <span class="uk-label uk-label-clear">開始</span>
+        <div id="route">
+        </div>
+        <span class="uk-label uk-label-clear">終了</span>
+        <div hidden=true id="selectUsers">
+        </div>
+      </div>
+
+      <div class="uk-modal-footer uk-text-center">
+        <button hidden=true class="uk-button uk-button-danger" type="button" id="btnDeny">却下</button>
+        <button hidden=true class="uk-button uk-button-primary" type="button" id="btnApprove">承認</button>
+        <button hidden=true class="uk-button uk-button-primary" type="button" id="btnRegister">上申</button>
+      </div>
+
+    </div>
+  </div>
+
+  <script type="text/javascript">
+
+    {% autoescape off %}
+    let protocol = "{{ protocol }}";
+    let host = "{{ host }}";
+    const url = "{{ base_url }}";
+    {% endautoescape %}
+    const selectUsers = document.querySelector('#selectUsers');
+    const route = document.querySelector('#route');
+    const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+    const approvalId = document.querySelector('#approval-id')
+
+    function deleteElem(e) {
+      e.target.closest('div').remove();
+    };
+
+    function clearFormat() {
+      document.querySelector('#title').value = "";
+      document.querySelector('#title').removeAttribute('disabled');
+      document.querySelector('#detail').value = "";
+      document.querySelector('#detail').removeAttribute('disabled');
+      document.querySelector('#btnDeny').hidden = true;
+
+      let route = document.querySelector('#route');
+      while (route.firstChild) {
+        route.removeChild(route.firstChild);
+      };
+
+      document.querySelector('#alert-title').hidden = true;
+      document.querySelector('#alert-detail').hidden = true;
+      document.querySelector('#btnApprove').hidden = true;
+      document.querySelector('#btnDeny').hidden = true;
+      document.querySelector('#btnRegister').hidden = true;
+
+      approvalId.innerHTML = "";
+      selectUsers.hidden = true;
+    };
+
+    // 登録処理
+    async function register() {
+
+      let title = document.querySelector('#title').value;
+      let detail = document.querySelector('#detail').value;
+
+      if (title == "") {
+        UIkit.alert(title);
+        document.querySelector('#alert-title').hidden = false;
+        document.querySelector('#alert-title').innerHTML = "名目は必須です。";
+        return;
+      };
+
+      let approve_order = [];
+      Array.from(route.children).forEach(function (e) {
+        approve_order.push(e.childNodes[0].value);
+      });
+
+      const data = {
+        title: title,
+        detail: detail,
+        route: approve_order
+      };
+
+      const response = await request(url + "/approval/new/0", "POST", data, csrftoken)
+        .then((data) => {
+          if (data.reload) {
+            location.reload();
+          }
+        });
+
+      // UIkit.modal(document.querySelector('#modal-format')).hide();
+    };
+
+    function addUser2List(elemBtn) {
+      let elemDiv = document.createElement("div");
+      elemBtn.className = "uk-label";
+      elemBtn.type = "button";
+      route.insertBefore(elemDiv, null);
+      elemDiv.insertBefore(elemBtn, null);
+    };
+
+    function addUser(e) {
+      let targetRow = e.target.parentElement.parentElement;
+      let id = targetRow.querySelector('[data-name=id]').innerHTML;
+      let name = targetRow.querySelector('[data-name=name]').innerHTML;
+      let elemBtn = document.createElement("button");
+      elemBtn.addEventListener('click', deleteElem);
+      elemBtn.innerHTML = name;
+      elemBtn.value = id;
+      addUser2List(elemBtn);
+    };
+
+    function checkDetail(e) {
+      let targetRow = e.target.parentElement.parentElement;
+      let id = targetRow.querySelector('[data-name=id]').innerHTML;
+      approvalId.innerHTML = id;
+      request(url + "/approval/check/" + id, "GET", {}, csrftoken)
+        .then((data) => {
+          let title = data.data.title;
+          let detail = data.data.detail;
+          document.querySelector('#title').value = title;
+          document.querySelector('#title').setAttribute('disabled', '');
+          document.querySelector('#detail').value = detail;
+          document.querySelector('#detail').setAttribute('disabled', '');
+          document.querySelector('#btnDeny').hidden = false;
+          document.querySelector('#format-title').innerHTML = "決裁承認";
+
+          data.route.forEach(function (r) {
+            let elemBtn = document.createElement("button");
+            elemBtn.innerHTML = r.name;
+            addUser2List(elemBtn);
+          });
+        });
+      document.querySelector('#btnApprove').hidden = false;
+      document.querySelector('#btnDeny').hidden = false;
+    };
+
+    function createUserList() {
+      var row = '\
+            <h3>ユーザ一覧</h3>\
+            <table class="uk-table uk-table-small uk-table-middle uk-table-hover"> \
+                <thead> \
+                    <tr> \
+                        <th class="uk-width-1-10"></th> \
+                        <th hidden=true class="uk-width-1-6">id</th> \
+                        <th class="uk-width-1-6">名前</th> \
+                    </tr> \
+                </thead> \
+                <tbody id="users"> \
+                </tbody> \
+            </table>'
+      selectUsers.insertAdjacentHTML('beforeend', row);
+
+      const users = document.querySelector('#users');
+      request(url + '/userinfo', 'GET', {}, csrftoken)
+        .then((data) => {
+          Object.keys(data.users).forEach(function (d) {
+            var userId = data.users[d].id;
+            var userName = defaultStr(data.users[d].last_name + data.users[d].first_name, 'No Name');
+
+            var elemTr = document.createElement("tr");
+
+            users.insertBefore(elemTr, null);
+
+            var elemTd01 = document.createElement("td");
+            var elemBtnAddUser = document.createElement("button");
+            elemBtnAddUser.className = "uk-button uk-button-default";
+            elemBtnAddUser.name = "btnAddUser";
+            elemBtnAddUser.type = "button";
+            elemBtnAddUser.value = userId;
+            elemBtnAddUser.innerHTML = "経路に追加";
+            elemBtnAddUser.addEventListener('click', addUser);
+            elemTr.insertBefore(elemTd01, null);
+            elemTd01.insertBefore(elemBtnAddUser, null);
+
+            // tdはcreateElement時もその後も、動的にname属性を設定できない inputもそうらしい
+            var elemTd02 = document.createElement("td");
+            elemTd02.hidden = true;
+            elemTd02.innerHTML = userId;
+            elemTd02.setAttribute('data-name', 'id');
+            elemTr.insertBefore(elemTd02, null);
+
+            var elemTd03 = document.createElement("td");
+            elemTd03.setAttribute('data-name', 'name');
+            elemTd03.innerHTML = userName;
+            elemTr.insertBefore(elemTd03, null);
+
+          });
+        });
+    };
+
+    function newDetail(e) {
+      selectUsers.hidden = false;
+      document.querySelector('#format-title').innerHTML = "新規決裁";
+      document.querySelector('#btnRegister').hidden = false;
+    };
+
+    function updateStatus(e) {
+      var id = approvalId.innerHTML;
+      var status = 0;
+      if (e.target.id == 'btnApprove') {
+        status = 9;
+      } else if (e.target.id == 'btnDeny') {
+        status = 8;
+      };
+      var data = {
+        status: status
+      }
+      const response = request(url + "/approval/check/" + id, "POST", data, csrftoken)
+        .then((data) => {
+          if (data.reload) {
+            location.reload();
+          }
+        });
+    };
+    document.querySelectorAll('[name=btnCheck]').forEach(function (button) {
+      button.addEventListener('click', checkDetail);
+    });
+    document.querySelector('#btnNew').addEventListener('click', newDetail);
+    document.querySelector('#btnDeny').addEventListener('click', updateStatus);
+    document.querySelector('#btnApprove').addEventListener('click', updateStatus);
+    document.querySelector('#btnRegister').addEventListener('click', register);
+    document.querySelector('#modal-format').addEventListener('hidden', clearFormat);
+    createUserList();
+  </script>
+  {% endblock %}

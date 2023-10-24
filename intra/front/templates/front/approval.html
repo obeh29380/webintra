@@ -279,7 +279,6 @@
             let targetRow = e.target.parentElement.parentElement;
             let id = targetRow.querySelector('[data-name=id]').innerHTML;
             let name = targetRow.querySelector('[data-name=name]').innerHTML;
-            var row = '<div><button class="uk-label" value="' + id + '" type="button">' + name + '</button></div>'
             let elemBtn = document.createElement("button");
             elemBtn.addEventListener('click', deleteElem);
             elemBtn.innerHTML = name;
@@ -300,7 +299,6 @@
                 document.querySelector('#detail').value = detail;
                 document.querySelector('#detail').setAttribute('disabled', '');
                 document.querySelector('#btnDeny').hidden = false;
-                // document.querySelector('#btnRegister').innerHTML = "承認";
                 document.querySelector('#format-title').innerHTML = "決裁承認";
 
                 data.route.forEach( function(r) {
@@ -368,12 +366,9 @@
         };
 
         function newDetail(e) {
-
             selectUsers.hidden = false;
             document.querySelector('#format-title').innerHTML = "新規決裁";
             document.querySelector('#btnRegister').hidden = false;
-
-            
         };
 
         function updateStatus(e) {
@@ -393,20 +388,15 @@
                     location.reload();
                 }
             });
-            // UIkit.modal(document.querySelector('#modal-format')).hide();
-
-
         };
         document.querySelectorAll('[name=btnCheck]').forEach(function (button) {
             button.addEventListener('click', checkDetail);
         });
-
         document.querySelector('#btnNew').addEventListener('click', newDetail);
         document.querySelector('#btnDeny').addEventListener('click', updateStatus);
         document.querySelector('#btnApprove').addEventListener('click', updateStatus);
         document.querySelector('#btnRegister').addEventListener('click', register);
         document.querySelector('#modal-format').addEventListener('hidden', clearFormat);
-        
         createUserList();
     </script>
     {% endblock %}

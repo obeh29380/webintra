@@ -136,7 +136,7 @@ class SettingWorkStatusView(SettingBase):
             host=url['host'],
             protocol=url['protocol'],
         )
-        return render(request, "front/workstatus_list.html", params)
+        return render(request, "front/setting_workstatus.html", params)
 
     def post(self, request):
 

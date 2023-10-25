@@ -217,6 +217,19 @@ class NewApprovalView(View):
 
 class Approval_checkView(View):
 
+    def get(self, request, id, *args, **kwargs):
+
+        data = Approval.objects.get(id=id)
+        approval_route = data.related_route
+        route = list()
+        for r in approval_route.all():
+            route.append(
+                dict(name=f'{r.userid.last_name}{r.userid.first_name}'))
+        return JsonResponse({
+            'data': model_to_dict(data),
+            'route': route,
+            })
+
     def post(self, request, id, *args, **kwargs):
 
         with transaction.atomic():

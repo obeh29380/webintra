@@ -43,6 +43,15 @@
         </div>
     </div>
 
+    <style type="text/css">
+        .hoge {
+          animation: blinkAnimeS2 2s infinite alternate;
+        }
+        @keyframes blinkAnimeS2{
+           0%{ color : #32d296;   background:#fff }
+         100%{ color : #fff; background:#32d296   }
+        }
+    </style>
     <hr>
     <div class="uk-card uk-card-default uk-card-body">
         <div class="uk-card-head">
@@ -56,6 +65,7 @@
                         <th class="uk-width-1-5">title</th>
                         <th class="uk-width-1-4">決裁ルート</th>
                         <th class="uk-width-1-6">上申日</th>
+                        <th class="uk-width-1-10"></th>
                     </tr>
                 </thead>
                 <tbody id="NotCompleted">
@@ -66,18 +76,21 @@
                         <td>{% for route in value.route %}
 
                             {% if forloop.counter != 1 %}
-                            →
+                            <span uk-icon="chevron-double-right"></span>
                             {% endif %}
 
                             {% if route.status == 2 %}
-                            ★{{route.userid.last_name}}{{route.userid.first_name}}
+                            <button class="uk-label-success hoge" type="button">{{route.userid.last_name}}{{route.userid.first_name}}</button>
                             {% else %}
-                            {{route.userid.last_name}}{{route.userid.first_name}}
+                            <button class="uk-label-clear" type="button">{{route.userid.last_name}}{{route.userid.first_name}}</button>
                             {% endif %}
 
                             {% endfor %}
                         </td>
                         <td>{{ value.approval.date }}</td>
+                        <td>
+                            <button class="uk-button uk-button-small uk-button-danger" name="btnCancel" type="button">取下</button>
+                        </td>
                     </tr>
                     {% endfor %}
                 </tbody>

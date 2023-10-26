@@ -137,7 +137,8 @@ class ApprovalView(BaseView):
                                 }
 
         # 完了済の決裁
-        data_complete = Approval.objects.filter(status__gte=complete_status_min)
+        data_complete = Approval.objects.filter(
+            userid=request.user.id, status__gte=complete_status_min)
         approval_complete = {}
         for obj in data_complete:
 

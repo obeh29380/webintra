@@ -105,6 +105,7 @@ class Approval(models.Model):
 
 
 class Approval_route(models.Model):
+    # tips on_delete=models.CASCADEは、Django上でemurateするだけ、DBには登録されない（直接クエリ叩くと、CASCADEになっていないので参照先は削除できない）
     id = models.AutoField(primary_key=True)
     approval = models.ForeignKey(Approval, db_column='approval', on_delete=models.CASCADE, related_name='related_route', null=True)
     userid = models.ForeignKey(User, db_column='user_id', on_delete=models.DO_NOTHING)

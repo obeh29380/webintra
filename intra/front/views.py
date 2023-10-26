@@ -124,7 +124,8 @@ class ApprovalView(BaseView):
         field = Approval._meta._get_fields()
 
         # 未完了の決裁
-        data = Approval.objects.filter(userid=request.user.id, status__lt=8).select_related('userid')
+        data = Approval.objects.filter(
+            userid=request.user.id, status__lt=8).select_related('userid')
         approval = {}
         for obj in data:
 
@@ -193,7 +194,6 @@ class NewApprovalView(View):
             b.save()
 
             new_approval = Approval.objects.all().order_by("-id")[0]
-            # id = new_approval.id
 
             # route
             route = datas.get('route')
@@ -245,9 +245,9 @@ class Approval_checkView(View):
                 target_approval_route.approved_date = datetime.date.today()
                 target_approval_route.save()
 
-                next_route_tmp = target_approval.related_route.filter(status=MAP_APPROVAL_STATUS_CODE['WAITMYTURN']).order_by("-id")
+                next_route = target_approval.related_route.filter(status=MAP_APPROVAL_STATUS_CODE['WAITMYTURN']).order_by("id")
 
-                if next_route_tmp.count() == 0 or \
+                if next_route.count() == 0 or \
                         status == MAP_APPROVAL_STATUS_CODE['REJECTED']:
                     # 最終か却下された場合、決裁ステータスを更新する
                     target_approval.status = status
@@ -255,8 +255,13 @@ class Approval_checkView(View):
                     target_approval.save()
                 else:
                     # 次の人の承認ステータスも承認待ちに更新
-                    next_route_tmp[0].status = MAP_APPROVAL_STATUS_CODE['MYTURN']
-                    next_route_tmp[0].save()
+                    # これは更新されない（なぜ？）
+                    # next_route[0].status = MAP_APPROVAL_STATUS_CODE['MYTURN']
+                    # next_route[0].save()
+
+                    target_next_route = Approval_route.objects.get(id=next_route[0].id)
+                    target_next_route.status = MAP_APPROVAL_STATUS_CODE['MYTURN']
+                    target_next_route.save()
 
         return JsonResponse({'reload': True})
 

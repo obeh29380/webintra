@@ -2,8 +2,6 @@ import calendar
 import datetime
 import json
 from logging import getLogger
-import os
-import requests
 
 from django.db import transaction
 from django.db.models import (
@@ -201,9 +199,9 @@ class NewApprovalView(View):
             for cnt, username in enumerate(route):
 
                 if cnt == 0:
-                    status = MAP_APPROVAL_STATUS_CODE['MYTURN']
+                    status = MAP_APPROVAL_STATUS_CODE.MYTURN.value
                 else:
-                    status = MAP_APPROVAL_STATUS_CODE['WAITMYTURN']
+                    status = MAP_APPROVAL_STATUS_CODE.WAITMYTURN.value
 
                 b = Approval_route(
                     approval=new_approval,
@@ -238,17 +236,17 @@ class Approval_checkView(View):
             status = datas.get('status')
             target_approval = Approval.objects.get(id=id)
             target_approval_route = target_approval.related_route.get(
-                status=MAP_APPROVAL_STATUS_CODE['MYTURN'], userid=user)
+                status=MAP_APPROVAL_STATUS_CODE.MYTURN.value, userid=user)
 
             if status != 0:
                 target_approval_route.status = status
                 target_approval_route.approved_date = datetime.date.today()
                 target_approval_route.save()
 
-                next_route = target_approval.related_route.filter(status=MAP_APPROVAL_STATUS_CODE['WAITMYTURN']).order_by("id")
+                next_route = target_approval.related_route.filter(status=MAP_APPROVAL_STATUS_CODE.WAITMYTURN.value).order_by("id")
 
                 if next_route.count() == 0 or \
-                        status == MAP_APPROVAL_STATUS_CODE['REJECTED']:
+                        status == MAP_APPROVAL_STATUS_CODE.REJECTED.value:
                     # 最終か却下された場合、決裁ステータスを更新する
                     target_approval.status = status
                     target_approval.date_complete = datetime.date.today()
@@ -260,7 +258,7 @@ class Approval_checkView(View):
                     # next_route[0].save()
 
                     target_next_route = Approval_route.objects.get(id=next_route[0].id)
-                    target_next_route.status = MAP_APPROVAL_STATUS_CODE['MYTURN']
+                    target_next_route.status = MAP_APPROVAL_STATUS_CODE.MYTURN.value
                     target_next_route.save()
 
         return JsonResponse({'reload': True})

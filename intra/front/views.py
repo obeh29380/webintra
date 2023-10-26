@@ -198,12 +198,14 @@ class NewApprovalView(View):
             # route
             route = datas.get('route')
 
-            for cnt, username in enumerate(route):
+            for cnt, user_id in enumerate(route):
 
                 if cnt == 0:
                     status = APPROVAL_STATUS_CODE.MYTURN.value
                 else:
                     status = APPROVAL_STATUS_CODE.WAITMYTURN.value
+                
+                user = User.objects.get(id=user_id)
 
                 b = Approval_route(
                     approval=new_approval,

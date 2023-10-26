@@ -231,7 +231,6 @@
             document.querySelector('#detail').removeAttribute('disabled');
             document.querySelector('#btnDeny').hidden = true;
 
-            let route = document.querySelector('#route');
             while( route.firstChild ){
                 route.removeChild( route.firstChild );
             };
@@ -317,6 +316,8 @@
                 data.route.forEach( function(r) {
                     let elemBtn = document.createElement("button");
                     elemBtn.innerHTML = r.name;
+                    console.log(r)
+                    console.log(r.name)
                     addUser2List(elemBtn);
                 });
             });

@@ -41,7 +41,7 @@ from .common import (
 from .consts import (
     WEEKDAYS,
     MAP_APPROVAL_STATUS,
-    MAP_APPROVAL_STATUS_CODE
+    APPROVAL_STATUS_CODE
 )
 from .models import (
     Attendance,
@@ -120,10 +120,11 @@ class ApprovalView(BaseView):
     def get(self, request):
 
         field = Approval._meta._get_fields()
+        complete_status_min = 5
 
         # 未完了の決裁
         data = Approval.objects.filter(
-            userid=request.user.id, status__lt=8).select_related('userid')
+            userid=request.user.id, status__lt=complete_status_min).select_related('userid')
         approval = {}
         for obj in data:
 
@@ -136,7 +137,7 @@ class ApprovalView(BaseView):
                                 }
 
         # 完了済の決裁
-        data_complete = Approval.objects.filter(status__gte=8)
+        data_complete = Approval.objects.filter(status__gte=complete_status_min)
         approval_complete = {}
         for obj in data_complete:
 
@@ -199,9 +200,9 @@ class NewApprovalView(View):
             for cnt, username in enumerate(route):
 
                 if cnt == 0:
-                    status = MAP_APPROVAL_STATUS_CODE.MYTURN.value
+                    status = APPROVAL_STATUS_CODE.MYTURN.value
                 else:
-                    status = MAP_APPROVAL_STATUS_CODE.WAITMYTURN.value
+                    status = APPROVAL_STATUS_CODE.WAITMYTURN.value
 
                 b = Approval_route(
                     approval=new_approval,
@@ -234,31 +235,32 @@ class Approval_checkView(View):
             datas = json.loads(request.body)
             user = User.objects.get(id=request.user.id)
             status = datas.get('status')
+
             target_approval = Approval.objects.get(id=id)
             target_approval_route = target_approval.related_route.get(
-                status=MAP_APPROVAL_STATUS_CODE.MYTURN.value, userid=user)
+                status=APPROVAL_STATUS_CODE.MYTURN.value, userid=user)
 
             if status != 0:
                 target_approval_route.status = status
                 target_approval_route.approved_date = datetime.date.today()
                 target_approval_route.save()
 
-                next_route = target_approval.related_route.filter(status=MAP_APPROVAL_STATUS_CODE.WAITMYTURN.value).order_by("id")
+                next_route = target_approval.related_route.filter(status=APPROVAL_STATUS_CODE.WAITMYTURN.value).order_by("id")
 
                 if next_route.count() == 0 or \
-                        status == MAP_APPROVAL_STATUS_CODE.REJECTED.value:
-                    # 最終か却下された場合、決裁ステータスを更新する
+                        status in [APPROVAL_STATUS_CODE.REJECT.value, APPROVAL_STATUS_CODE.CANCEL.value]:
+                    # 却下か取り下げされた場合もしくは最終承認者であった場合、この決裁自体が完了となる
                     target_approval.status = status
                     target_approval.date_complete = datetime.date.today()
                     target_approval.save()
                 else:
                     # 次の人の承認ステータスも承認待ちに更新
                     # これは更新されない（なぜ？）
-                    # next_route[0].status = MAP_APPROVAL_STATUS_CODE['MYTURN']
+                    # next_route[0].status = APPROVAL_STATUS_CODE['MYTURN']
                     # next_route[0].save()
 
                     target_next_route = Approval_route.objects.get(id=next_route[0].id)
-                    target_next_route.status = MAP_APPROVAL_STATUS_CODE.MYTURN.value
+                    target_next_route.status = APPROVAL_STATUS_CODE.MYTURN.value
                     target_next_route.save()
 
         return JsonResponse({'reload': True})

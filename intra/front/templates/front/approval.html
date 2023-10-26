@@ -61,6 +61,7 @@
             <table class="uk-table uk-table-small uk-table-middle uk-table-hover">
                 <thead>
                     <tr>
+                        <th hidden="true" class="uk-width-1-10"></th>
                         <th class="uk-width-1-10">ステータス</th>
                         <th class="uk-width-1-5">title</th>
                         <th class="uk-width-1-4">決裁ルート</th>
@@ -71,8 +72,9 @@
                 <tbody id="NotCompleted">
                     {% for key, value in approval.items %}
                     <tr>
+                        <td hidden="true" data-name="id">{{ value.approval.id }}</td>
                         <td>{{ value.status }}</td>
-                        <td>{{ value.approval.title }}</td>
+                        <td data-name="title">{{ value.approval.title }}</td>
                         <td>{% for route in value.route %}
 
                             {% if forloop.counter != 1 %}
@@ -132,15 +134,15 @@
                         <td>{% for route in value.route %}
 
                             {% if forloop.counter != 1 %}
-                            →
+                            <span uk-icon="chevron-double-right"></span>
                             {% endif %}
 
                             {% if route.status == 8 %}
-                            × {{route.userid}}
+                            <button class="uk-label-danger" type="button">{{route.userid.last_name}}{{route.userid.first_name}}</button>
                             {% elif route.status == 9 %}
-                            〇 {{route.userid}}
+                            <button class="uk-label-success" type="button">{{route.userid.last_name}}{{route.userid.first_name}}</button>
                             {% else %}
-                            {{route.userid}}
+                            <button class="uk-label-clear" type="button">{{route.userid.last_name}}{{route.userid.first_name}}</button>
                             {% endif %}
 
                             {% endfor %}
@@ -322,6 +324,25 @@
             document.querySelector('#btnDeny').hidden = false;
         };
 
+        function cancelApproval(e) {
+            let targetRow = e.target.parentElement.parentElement;
+            let title = targetRow.querySelector('[data-name=title]').innerHTML;
+
+            let checkFlg = window.confirm('決裁:「' + title + '」を取り下げます。よろしいですか？');
+            if (!(checkFlg)){
+                return;
+            };
+            let id = targetRow.querySelector('[data-name=id]').innerHTML;
+            let data = {
+                status: 7
+            };
+            request(url + "/approval/check/" + id, "POST", data, csrftoken)
+            .then((data) => {
+                location.reload();
+            });
+            
+        };
+
         function createUserList() {
             var row = '\
             <h3>ユーザ一覧</h3>\
@@ -402,6 +423,9 @@
         };
         document.querySelectorAll('[name=btnCheck]').forEach(function (button) {
             button.addEventListener('click', checkDetail);
+        });
+        document.querySelectorAll('[name=btnCancel]').forEach(function (button) {
+            button.addEventListener('click', cancelApproval);
         });
         document.querySelector('#btnNew').addEventListener('click', newDetail);
         document.querySelector('#btnDeny').addEventListener('click', updateStatus);

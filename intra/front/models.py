@@ -111,6 +111,7 @@ class Approval_route(models.Model):
     userid = models.ForeignKey(User, db_column='user_id', on_delete=models.DO_NOTHING)
     approved_date = models.DateField(null=True)
     status = models.IntegerField(default=0)
+    comment = models.TextField(null=True)
 
     class Meta:
         db_table = "approval_route"

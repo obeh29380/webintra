@@ -13,13 +13,13 @@ class WEEKDAY(Enum):
     SAT = auto()
     SUN = auto()
 
-class MAP_APPROVAL_STATUS_CODE(Enum):
+class APPROVAL_STATUS_CODE(Enum):
     WAITMYTURN = 0
     MYTURN = 2
-    CANCEL = 3
-    PASSED = 7
-    REJECTED = 8
-    APPROVED = 9
+    PASSED = 5
+    CANCEL = 7
+    REJECT = 8
+    APPROVE = 9
 
 WEEKDAYS = ['月', '火', '水', '木', '金', '土', '日']
 
@@ -32,8 +32,8 @@ MAP_DAY_STATUS = {"WORK": "01",
 
 MAP_APPROVAL_STATUS = {0: "未承認",
                        2: "要承認",
-                       3: "取下",
-                       7: "パス",
+                       3: "パス",
+                       7: "取下",
                        8: "却下",
                        9: "承認",
                        }

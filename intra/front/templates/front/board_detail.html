@@ -1,0 +1,232 @@
+{% extends "front/base_nav.html" %}
+{% block title %}掲示板作成{% endblock %}
+
+{% block head %}
+{% csrf_token %}
+{% endblock %}
+
+{% block content %}
+
+
+<hr>
+<div hidden=true class="uk-alert uk-alert-danger" id="alert"></div>
+<div class="uk-container">
+  <form class="uk-grid-small" uk-grid>
+    <div class="uk-width-3-4@s">
+      <input type="text" placeholder="title" id="title" class="uk-input" value="{{ data.title }}">
+    </div>
+    <div class="uk-width-1-4@s">
+      <div class="uk-inline">
+        <span class="uk-form-icon" uk-icon="icon: user"></span>
+        <input disabled class="uk-input" type="text" aria-label="Not clickable icon"
+          value="{{ request.user.last_name }}{{ request.user.first_name }}">
+      </div>
+    </div>
+  </form>
+
+  <ul uk-tab id="EditTypeSelection">
+    <li><a href="#">MarkDown</a></li>
+    <li><a href="#" id="preview">Preview</a></li>
+  </ul>
+  <ul class="uk-switcher uk-margin">
+    <li><textarea type="text" id="detail" class="uk-textarea" rows="30">{{ data.detail }}</textarea></li>
+    <li>
+      <div class="uk-tile uk-tile-muted uk-padding-small" id="content">
+      </div>
+    </li>
+  </ul>
+
+  <div class="uk-text-right">
+    <button class="uk-button uk-button-primary" id="btnRegister" type="button">登録</button>
+    <button hidden=true class="uk-button uk-button-danger" id="btnDel" type="button">削除</button>
+  </div>
+
+  <div class="uk-container">
+    <h2>Comments</h2>
+    {% for comment in comments %}
+    <hr>
+    <article class="uk-comment" role="comment">
+      <header class="uk-comment-header">
+        <div class="uk-grid-medium uk-flex-middle" uk-grid>
+          <div class="uk-width-auto">
+            <img class="uk-comment-avatar" src="#" width="80" height="80" alt="">
+          </div>
+          <div class="uk-width-expand">
+            <h4 class="uk-comment-title uk-margin-remove"><a class="uk-link-reset" href="#">
+              {{ comment.user.last_name}}{{ comment.user.first_name }}</a></h4>
+            <ul class="uk-comment-meta uk-subnav uk-subnav-divider uk-margin-remove-top">
+              <li><a href="#">{{ comment.created_datetime }}</a></li>
+            </ul>
+          </div>
+        </div>
+      </header>
+      <div class="uk-comment-body uk-text-large">
+        <p>{{ comment.detail }}</p>
+      </div>
+    </article>
+    {% endfor %}
+
+  </div>
+
+  <div class="uk-text-large uk-margin-medium">
+    <textarea type="text" placeholder="comment" id="comment" class="uk-textarea" rows="5"></textarea>
+    <div class="uk-text-right uk-margin-small">
+      <button class="uk-button uk-button-primary" id="btnComment" type="button">コメント送信</button>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+<script type="text/javascript" src="/static/js/node_modules/dompurify/dist/purify.min.js"></script>
+<script type="text/javascript">
+
+  {% autoescape off %}
+  const url = "{{ base_url }}";
+  const title = "{{ data.title }}";
+  const id = "{{ data.id }}";
+  const comments = "{{comments}}"
+  {% endautoescape %}
+  const elemTitle = document.querySelector('#title');
+  const elemDetail = document.querySelector('#detail');
+  const elemContent = document.querySelector('#content');
+  const elemComment = document.querySelector('#comment');
+  const btnRegister = document.querySelector('#btnRegister');
+  const btnComment = document.querySelector('#btnComment');
+  const btnDel = document.querySelector('#btnDel');
+  const elemEditTypeSelection = document.querySelector('#EditTypeSelection');
+  const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+  let isNew = false;
+
+  async function submitComment() {
+    let detail = elemComment.value;
+    const data = {
+      detail: detail
+    };
+    const response = await request(url + "/board/" + id + "/comment", "POST", data, csrftoken)
+      .then((data) => {
+        location.reload();
+      });
+  };
+
+  function setReadOnly() {
+    document.querySelector('#EditTypeSelection').hidden = true;
+    elemTitle.readOnly = true;
+    elemDetail.readOnly = true;
+    const clear = parseMD(elemDetail.innerHTML);
+    elemContent.innerHTML = clear;
+    btnRegister.hidden = true;
+    elemDetail.innerHTML = "";
+    isNew = true;
+    btnDel.disable;
+
+    UIkit.tab(elemEditTypeSelection).show(1);
+  };
+
+  function setEdit() {
+    const clear = parseMD(elemDetail.innerHTML);
+    elemContent.innerHTML = clear;
+    btnRegister.innerHTML = '更新';
+    btnDel.hidden = false;
+  };
+
+  function setComments() {
+
+  };
+
+  if ('{{ data.user }}' == '{{ request.user.id }}') {
+    setEdit();
+  } else if (title) {
+    setReadOnly();
+  };
+  // 登録処理
+  async function register() {
+
+    let title = elemTitle.value;
+    let detail = elemDetail.value;
+
+    if (title == "") {
+      UIkit.alert(title);
+      document.querySelector('#alert').hidden = false;
+      document.querySelector('#alert').innerHTML = "タイトルは必須です。";
+      return;
+    };
+
+    if (detail == "") {
+      UIkit.alert(title);
+      document.querySelector('#alert').hidden = false;
+      document.querySelector('#alert').innerHTML = "内容が入力されていません";
+      return;
+    };
+
+    const data = {
+      title: title,
+      detail: detail
+    };
+
+    let urlRoute = '';
+    if (id) {
+      urlRoute = '/' + id;
+    } else {
+      urlRoute = '/new';
+    };
+
+    const response = await request(url + "/board" + urlRoute, "POST", data, csrftoken)
+      .then((data) => {
+        window.close();
+      });
+  };
+
+  // 削除処理
+  async function deleteBoard() {
+
+    let checkFlg = window.confirm('掲示板を削除します。よろしいですか？');
+    if (!(checkFlg)) {
+      return;
+    };
+
+    const response = await request(url + "/board/" + id, "DELETE", {}, csrftoken)
+      .then((data) => {
+        window.close();
+      });
+  };
+
+  function parseMD(text) {
+    const dirty = marked.parse(text);
+    return DOMPurify.sanitize(dirty);
+  };
+
+  function setContent() {
+    const clean = parseMD(elemDetail.value);
+    document.getElementById('content').innerHTML = clean;
+  };
+  function OnTabKey(e, obj) {
+
+    // タブキーが押された時以外は即リターン
+    if (e.keyCode != 9) { return; }
+
+    // タブキーを押したときのデフォルトの挙動を止める
+    e.preventDefault();
+
+    // 現在のカーソルの位置と、カーソルの左右の文字列を取得しておく
+    var cursorPosition = e.target.selectionStart;
+    var cursorLeft = e.target.value.substr(0, cursorPosition);
+    var cursorRight = e.target.value.substr(cursorPosition, e.target.value.length);
+
+    // テキストエリアの中身を、
+    // 「取得しておいたカーソルの左側」+「タブ」+「取得しておいたカーソルの右側」
+    // という状態にする。
+    e.target.value = cursorLeft + "\t" + cursorRight;
+
+    // カーソルの位置を入力したタブの後ろにする
+    e.target.selectionEnd = cursorPosition + 1;
+  };
+
+  // 対象となるテキストエリアにonkeydownイベントを追加する
+  elemDetail.addEventListener('keydown', OnTabKey);
+  btnRegister.addEventListener('click', register);
+  btnDel.addEventListener('click', deleteBoard);
+  btnComment.addEventListener('click', submitComment);
+  document.querySelector('#preview').addEventListener('click', setContent);
+
+</script>
+{% endblock %}

@@ -1,8 +1,8 @@
 from datetime import datetime
 
-from django.db import models
 from django.contrib.auth.models import User
-
+from django.db import models
+from django.forms.models import model_to_dict
 
 class BaseManager(models.Manager):
    def get_or_none(self, **kwargs):
@@ -135,11 +135,11 @@ class Approval_format_route(models.Model):
 
 
 class Board(models.Model):
-    author_id = models.CharField(max_length=20, null=True)
-    created_datetime = models.DateTimeField(null=True)
+    user = models.ForeignKey(User, db_column='user', on_delete=models.DO_NOTHING, null=True)
+    created_datetime = models.DateTimeField(auto_now_add=True)
     title = models.TextField()
     detail = models.TextField()
-    category_id = models.IntegerField(null=True)
+    category_id = models.IntegerField(default=0)
     good_count = models.IntegerField(default=0)
 
     class Meta:
@@ -147,14 +147,18 @@ class Board(models.Model):
 
 
 class Board_comment(models.Model):
-    author_id = models.CharField(max_length=20, null=True)
-    created_datetime = models.DateTimeField(null=True)
+    user = models.ForeignKey(User, db_column='user', on_delete=models.DO_NOTHING, null=True)
+    created_datetime = models.DateTimeField(auto_now_add=True)
     detail = models.TextField()
-    board_id = models.IntegerField(null=False)
+    board = models.ForeignKey(Board, db_column='board', on_delete=models.CASCADE, related_name='board_comments', null=True)
 
     class Meta:
         db_table = "board_comment"
 
+    def to_dict(self):
+        ret = model_to_dict(self)
+        ret['created_datetime'] = self.created_datetime.strftime("%y/%m/%d %H:%M")
+        return ret
 
 class Board_category(models.Model):
     name = models.CharField(max_length=20, null=True)

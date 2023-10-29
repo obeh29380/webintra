@@ -3,6 +3,7 @@ import datetime
 import json
 from logging import getLogger
 
+from django.core.exceptions import PermissionDenied
 from django.db import transaction
 from django.db.models import (
     Max,
@@ -52,9 +53,14 @@ from .models import (
     Approval_format,
     Approval_format_route,
     Board,
+    Board_comment,
 )
 
 logger = getLogger(__name__)
+
+
+def is_admin():
+    return True
 
 
 def register_attendance_month(userid, year, month):
@@ -272,71 +278,138 @@ class Approval_checkView(View):
 class BoardView(View):
     def get(self, request, *args, **kwargs):
 
-        data = Board.objects.all()
+        board_items = Board.objects.all()
+
+        datas = list()
+        for d in board_items:
+            board = model_to_dict(d)
+            user = {
+                'id': d.user.id,
+                'first_name': d.user.first_name,
+                'last_name': d.user.last_name,
+            }
+            board['user'] = user
+            datas.append(board)
 
         params = {'title': '掲示板一覧',
-                  'data': data,
+                  'datas': datas,
                   'user': request.user,
                   'page_board': 1,
                   }
 
         return render(request, "front/board.html", params)
 
-
-class Board_detailView(View):
+class BoardCreateView(View):
 
     def get(self, request, *args, **kwargs):
 
-        id = kwargs['id']
-        data = None
-        new = False
-        if not id == 0:
-            data = Board.objects.get(id=id)
-        else:
-            new = True
+        # data = Board.objects.all()
 
-        params = {
-            'title': '掲示板詳細',
-            'data': data,
-            'user': request.user,
-            'page_board': 1,
-            'new': new
-        }
+        params = {'title': '掲示板作成',
+                  }
 
         return render(request, "front/board_detail.html", params)
 
     def post(self, request, *args, **kwargs):
 
-        id = kwargs['id']
-        if id == 0:
-            b = Board(
-                author_id=request.user,
-                created_datetime=make_aware(datetime.datetime.now()),
-                title=request.POST.get('title', 'No Title'),
-                detail=request.POST.get('detail', None),
-            )
-            b.save()
+        datas = json.loads(request.body)
+        user = User.objects.get(id=request.user.id)
+        b = Board(
+            title=datas.get('title'),
+            detail=datas.get('detail'),
+            user=user,
+        )
+        b.save()
 
-            id = Board.objects.all().aggregate(Max('id'))
+        return JsonResponse({'result': True})
 
-        else:
-            data = Board.objects.get(id=id)
+class Board_detailView(View):
 
-            data.title = request.POST.get('title', 'No Title')
-            data.detail = request.POST.get('detail', None)
+    def get(self, request, id, *args, **kwargs):
 
-            try:
-                data.save()
-            except Exception as e:
-                raise e
+        data = Board.objects.get(id=id)
+        board_comments = data.board_comments.all()
+        comments = [c.to_dict() for c in board_comments]
 
-        # success_url = reverse_lazy('front:board')
-        # return HttpResponseRedirect(reverse_lazy('front:board',args=(id)))
-        # return HttpResponseRedirect(success_url) # リダイレクト
+        comments = list()
+        for comment in board_comments:
+            user = {
+                'id': comment.user.id,
+                'first_name': comment.user.first_name,
+                'last_name': comment.user.last_name,
+            }
+            c = comment.to_dict()
+            c['user'] = user
+            comments.append(c)
 
-        success_url = reverse_lazy('front:board_detail', kwargs=({'id': id}))
-        # URLにパラメータを付与する
-        return HttpResponseRedirect(success_url)
+        params = {
+            'title': '掲示板詳細',
+            'data': model_to_dict(data),
+            'comments': comments
+        }
+
+        return render(request, "front/board_detail.html", params)
+
+    def post(self, request, id, *args, **kwargs):
+
+        req_body = json.loads(request.body)
+        target = Board.objects.get(id=id)
+        target.title = req_body['title']
+        target.detail = req_body['detail']
+        target.save()
+
+        return JsonResponse({'result': True})
+
+    def delete(self, request, id):
+        """指定された掲示板を削除する。
+        """
+
+        target = Board.objects.get(id=id)
+        
+        if not request.user.id == target.user.id and \
+            not is_admin(request.user.id):
+
+            # 403を返したい
+            raise PermissionDenied()
+
+        target.delete()
+        return JsonResponse({'result': True})
+
+
+class BoardComment(View):
+
+    def post(self, request, id, *args, **kwargs):
+        """ここで渡されるidは、Boardのid
+        """
+
+        req_body = json.loads(request.body)
+        target = Board.objects.get(id=id)
+        user = User.objects.get(id=request.user.id)
+        comment = req_body['detail']
+        b = Board_comment(
+            user = user,
+            detail = comment,
+            board = target
+        )
+        b.save()
+
+        return JsonResponse({'result': True})
+
+    def delete(self, request, id):
+        """指定された掲示板を削除する。
+        ここで渡されるidは、Board_commentのid
+        """
+
+        target = Board_comment.objects.get(id=id)
+
+        if not request.user.id == target.user.id and \
+            not is_admin(request.user.id):
+
+            # 403を返したい
+            raise PermissionDenied()
+
+        target.delete()
+        return JsonResponse({'result': True})
 
 
 class ToolsView(View):

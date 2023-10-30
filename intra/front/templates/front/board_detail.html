@@ -36,6 +36,10 @@
     </li>
   </ul>
 
+  <div class="uk-text-left">
+    <a href="#" id="goodLink"><span uk-icon="star" id="goodIcon"></span></a>
+  </div>
+
   <div class="uk-text-right">
     <button class="uk-button uk-button-primary" id="btnRegister" type="button">登録</button>
     <button hidden=true class="uk-button uk-button-danger" id="btnDel" type="button">削除</button>
@@ -129,10 +133,6 @@
     btnDel.hidden = false;
   };
 
-  function setComments() {
-
-  };
-
   if ('{{ data.user }}' == '{{ request.user.id }}') {
     setEdit();
   } else if (title) {
@@ -169,10 +169,22 @@
     } else {
       urlRoute = '/new';
     };
-
     const response = await request(url + "/board" + urlRoute, "POST", data, csrftoken)
       .then((data) => {
-        window.close();
+        if (id) {
+          UIkit.notification("<span uk-icon='icon: check'></span> 更新しました", {pos: 'top-center', status:'success'});
+        } else {
+          window.close();
+        };
+      });
+  };
+
+  // いいね処理
+  async function submitGood(e) {
+    e.preventDefault;
+    const response = await request(url + "/board/" + id + '/good', "POST", {}, csrftoken)
+      .then((data) => {
+        document.querySelector('#goodIcon').setAttribute('uk-icon', 'starcolored')
       });
   };
 
@@ -227,6 +239,7 @@
   btnDel.addEventListener('click', deleteBoard);
   btnComment.addEventListener('click', submitComment);
   document.querySelector('#preview').addEventListener('click', setContent);
+  document.querySelector('#goodLink').addEventListener('click', submitGood);
 
 </script>
 {% endblock %}

@@ -21,9 +21,9 @@
   </div>
   
   <hr>
-  
 
-  <div id="boardList"></div>
+  <div id="boardList">
+  </div>
   <script type="text/javascript">
 
     {% autoescape off %}
@@ -36,6 +36,12 @@
     function addList() {
 
       datas.forEach(function (data) {
+
+        let elemGridRow = document.createElement("div");
+        elemGridRow.setAttribute('uk-grid', null);
+        boardList.insertBefore(elemGridRow, null);
+
+        let elemGridColMain = document.createElement("div");
         let elemH = document.createElement("h3");
         elemH.className = 'uk-margin-medium';
         let elemA = document.createElement("a");
@@ -44,11 +50,31 @@
         elemA.target = "_blank";
         elemA.href = '{% url "front:board_detail" "abc" %}'.replace(/abc/, data.id);
         elemA.innerText = data.title + '@' + data.user.last_name + data.user.first_name;
+
         elemId.hidden = true;
         elemId.value = data.id;
         elemId.name = 'id';
-        boardList.insertBefore(elemH, null);
+        elemGridRow.insertBefore(elemGridColMain, null);
+        elemGridColMain.insertBefore(elemH, null);
         elemH.insertBefore(elemA, null);
+
+        let elemGridColSub = document.createElement("div");
+        elemGridColSub.className = 'uk-text-baseline'
+        let elemGoodCount = document.createElement("span");
+        let elemCommentCount = document.createElement("span");
+
+        let elemGoodCountView = document.createElement("span");
+        elemGoodCountView.innerText = '(' + data.good_count + ') ';
+        let elemCommentCountView = document.createElement("span");
+        elemCommentCountView.innerText = '(' + data.comment_count + ')';
+
+        elemGoodCount.setAttribute('uk-icon', 'star');
+        elemCommentCount.setAttribute('uk-icon', 'comments');
+        elemGridRow.insertBefore(elemGridColSub, null);
+        elemGridColSub.insertBefore(elemGoodCount, null);
+        elemGridColSub.insertBefore(elemGoodCountView, null);
+        elemGridColSub.insertBefore(elemCommentCount, null);
+        elemGridColSub.insertBefore(elemCommentCountView, null);
       });
     };
 

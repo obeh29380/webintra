@@ -288,7 +288,9 @@ class BoardView(View):
                 'first_name': d.user.first_name,
                 'last_name': d.user.last_name,
             }
+            board_comments = d.board_comments.all()
             board['user'] = user
+            board['comment_count'] = len(board_comments)
             datas.append(board)
 
         params = {'title': '掲示板一覧',
@@ -410,6 +412,36 @@ class BoardComment(View):
 
         target.delete()
         return JsonResponse({'result': True})
+
+
+class BoardGood(View):
+
+    def post(self, request, id, *args, **kwargs):
+        """ここで渡されるidは、Boardのid
+        """
+
+        # TODO ユーザ毎のいいね回数は１回まで、DELETEで取り消し
+        target = Board.objects.get(id=id)
+        target.good_count += 1
+        target.save()
+
+        return JsonResponse({'result': True})
+
+    # def delete(self, request, id):
+    #     """指定された掲示板を削除する。
+    #     ここで渡されるidは、Board_commentのid
+    #     """
+
+    #     target = Board_comment.objects.get(id=id)
+
+    #     if not request.user.id == target.user.id and \
+    #         not is_admin(request.user.id):
+
+    #         # 403を返したい
+    #         raise PermissionDenied()
+
+    #     target.delete()
+    #     return JsonResponse({'result': True})
 
 
 class ToolsView(View):

@@ -784,13 +784,15 @@ class signup_Register(CreateView):
     success_url = reverse_lazy('front:top')
 
     def form_valid(self, form):
-        user = form.save()  # formの情報を保存
-        login(self.request, user)  # 認証
-        self.object = user
 
-        b = UserSetting(
-            userid=user.username,
-        )
-        b.save()
+        with transaction.atomic():
+            user = form.save()  # formの情報を保存
+            login(self.request, user)  # 認証
+            self.object = user
+
+            b = UserSetting(
+                userid=user,
+            )
+            b.save()
 
         return HttpResponseRedirect(self.get_success_url())  # リダイレクト

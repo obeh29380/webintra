@@ -76,7 +76,7 @@ class Holiday(models.Model):
 
 class UserSetting(models.Model):
 
-    userid = models.CharField(max_length=20, null=True)
+    userid = models.ForeignKey(User, db_column='user_id', on_delete=models.CASCADE)
     day_worktime = models.TimeField(default="08:00:00")
     mon_is_holiday = models.BooleanField(default=False)
     tue_is_holiday = models.BooleanField(default=False)
@@ -86,6 +86,7 @@ class UserSetting(models.Model):
     sat_is_holiday = models.BooleanField(default=True)
     sun_is_holiday = models.BooleanField(default=True)
     rank = models.IntegerField(default=3)
+    memo = models.TextField(null=True)
 
     class Meta:
         db_table = "user_setting"

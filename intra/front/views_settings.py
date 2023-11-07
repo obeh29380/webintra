@@ -270,28 +270,26 @@ class SettingHolidayByDate(SettingBase):
         data = {'result': True} # 空だとjs側でエラーになるため
         return JsonResponse(data)
 
-
 class SettingUserView(SettingBase):
 
     success_url = reverse_lazy('front:setting_user')
-
     def get(self, request):
 
-        data_tmp = UserSetting.objects.all()
-        print('usersetting GET')
+        data = UserSetting.objects.all()
+        rtn = list()
+        for d in data:
+            user = model_to_dict(d.userid)
+            rtn_d = model_to_dict(d)
+            rtn_d['user'] = user
+            rtn.append(rtn_d)
 
-        data = {}
-        for d in data_tmp:
+        url = self._get_url_info(request)
 
-            data[d.id] = {'user': d,
-                          }
-
-        params = {'message': '一覧',
-                  'data': data,
-                  'counter': (1, 2, 3, 4, 5),
-                  'page_setting': 1,
-                  }
-
+        params = {
+            'data': rtn,
+            'host': url['host'],
+            'protocol': url['protocol'],
+        }
         return render(request, "front/setting_user.html", params)
 
     def post(self, request):
@@ -343,6 +341,41 @@ class SettingUserView(SettingBase):
             obj.save()
 
         return HttpResponseRedirect(reverse_lazy('front:setting_user'))  # リダイレクト
+
+
+class SettingUserById(SettingBase):
+
+    def post(self, request, id):
+
+        obj = UserSetting.objects.get(id=id)
+        params = json.loads(request.body)
+
+        worktime = params.get('worktime')
+        mon_is_holiday = params.get('mon')
+        tue_is_holiday = params.get('tue')
+        wed_is_holiday = params.get('wed')
+        thu_is_holiday = params.get('thu')
+        fri_is_holiday = params.get('fri')
+        sat_is_holiday = params.get('sat')
+        sun_is_holiday = params.get('sun')
+        rank = params.get('rank')
+        memo = params.get('memo')
+
+        # update
+        obj.day_worktime = worktime
+        obj.mon_is_holiday = mon_is_holiday
+        obj.tue_is_holiday = tue_is_holiday
+        obj.wed_is_holiday = wed_is_holiday
+        obj.thu_is_holiday = thu_is_holiday
+        obj.fri_is_holiday = fri_is_holiday
+        obj.sat_is_holiday = sat_is_holiday
+        obj.sun_is_holiday = sun_is_holiday
+        obj.rank = rank
+        obj.memo = memo
+        obj.save()
+
+        data = {'result': True} # 空だとjs側でエラーになるため
+        return JsonResponse(data)
 
 
 class SettingApprovalFormatView(SettingBase):

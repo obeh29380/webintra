@@ -92,3 +92,9 @@ function defaultStr(str, default_word) {
 
     return str ?? default_word;
 };
+
+function isStringEmpty(str) {
+    if (!(str?.trim())) {
+        return true;
+    };
+};

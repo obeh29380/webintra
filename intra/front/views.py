@@ -503,12 +503,14 @@ class AttendView(BaseView):
                 work_day_total += 1
 
             car_fare += obj.carfare
+            is_holiday = work_status[obj.work_status]
 
-            workday_month += 1
+            if not is_holiday:
+                workday_month += 1
 
             attend[day] = {'attend': obj,
                            'weekday': weekday,
-                           'holiday': work_status[obj.work_status],
+                           'holiday': is_holiday,
                            }
 
         tmp = WorkStatus.objects.filter(use=True)

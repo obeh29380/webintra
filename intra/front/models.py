@@ -30,7 +30,7 @@ class Schedule(models.Model):
 
 
 class Attendance(models.Model):
-    userid = models.CharField(max_length=20, null=True)
+    user = models.ForeignKey(User, db_column='user', related_name='attendance', on_delete=models.CASCADE, null=True)
     date = models.DateField(null=True)
     work_detail = models.CharField(max_length=100, null=True)
     work_status = models.IntegerField(null=True)
@@ -46,7 +46,7 @@ class Attendance(models.Model):
     class Meta:
         constraints = [
             models.UniqueConstraint(
-                fields=["userid", "date"], name="unique_user")
+                fields=["user", "date"], name="unique_user")
         ]
         db_table = "attendance"
 
@@ -76,7 +76,7 @@ class Holiday(models.Model):
 
 class UserSetting(models.Model):
 
-    userid = models.ForeignKey(User, db_column='user_id', on_delete=models.CASCADE)
+    user = models.OneToOneField(User, related_name='user_setting', on_delete=models.CASCADE, null=True)
     day_worktime = models.TimeField(default="08:00:00")
     mon_is_holiday = models.BooleanField(default=False)
     tue_is_holiday = models.BooleanField(default=False)
@@ -93,7 +93,7 @@ class UserSetting(models.Model):
 
 
 class Approval(models.Model):
-    userid = models.ForeignKey(User, db_column='user_id', on_delete=models.DO_NOTHING)
+    user = models.ForeignKey(User, db_column='user', related_name='approval', on_delete=models.CASCADE, null=True)
     date = models.DateField(auto_now_add=True)
     date_complete = models.DateField(default=datetime.now)
     title = models.CharField(max_length=100, null=True)
@@ -109,7 +109,7 @@ class Approval_route(models.Model):
     # tips on_delete=models.CASCADEは、Django上でemurateするだけ、DBには登録されない（直接クエリ叩くと、CASCADEになっていないので参照先は削除できない）
     id = models.AutoField(primary_key=True)
     approval = models.ForeignKey(Approval, db_column='approval', on_delete=models.CASCADE, related_name='related_route', null=True)
-    userid = models.ForeignKey(User, db_column='user_id', on_delete=models.DO_NOTHING)
+    user = models.ForeignKey(User, db_column='user', on_delete=models.CASCADE, null=True)
     approved_date = models.DateField(null=True)
     status = models.IntegerField(default=0)
     comment = models.TextField(null=True)

@@ -34,7 +34,7 @@
                         <td><a class="uk-button uk-button-primary" name="btnCheck" href="#modal-format" uk-toggle>確認</a></td>
                         <td data-name="id" hidden="true">{{value.id}}</td>
                         <td>{{value.title}}</td>
-                        <td>{{value.userid.last_name}}{{value.userid.first_name}}</td>
+                        <td>{{value.user.last_name}}{{value.user.first_name}}</td>
                         <td>{{value.date}}</td>
                     </tr>
                     {% endfor %}
@@ -82,9 +82,9 @@
                             {% endif %}
 
                             {% if route.status == 2 %}
-                            <button class="uk-label-success hoge" type="button">{{route.userid.last_name}}{{route.userid.first_name}}</button>
+                            <button class="uk-label-success hoge" type="button">{{route.user.last_name}}{{route.user.first_name}}</button>
                             {% else %}
-                            <button class="uk-label-clear" type="button">{{route.userid.last_name}}{{route.userid.first_name}}</button>
+                            <button class="uk-label-clear" type="button">{{route.user.last_name}}{{route.user.first_name}}</button>
                             {% endif %}
 
                             {% endfor %}
@@ -138,11 +138,11 @@
                             {% endif %}
 
                             {% if route.status == 8 %}
-                            <button class="uk-label-danger" type="button">{{route.userid.last_name}}{{route.userid.first_name}}</button>
+                            <button class="uk-label-danger" type="button">{{route.user.last_name}}{{route.user.first_name}}</button>
                             {% elif route.status == 9 %}
-                            <button class="uk-label-success" type="button">{{route.userid.last_name}}{{route.userid.first_name}}</button>
+                            <button class="uk-label-success" type="button">{{route.user.last_name}}{{route.user.first_name}}</button>
                             {% else %}
-                            <button class="uk-label-clear" type="button">{{route.userid.last_name}}{{route.userid.first_name}}</button>
+                            <button class="uk-label-clear" type="button">{{route.user.last_name}}{{route.user.first_name}}</button>
                             {% endif %}
 
                             {% endfor %}

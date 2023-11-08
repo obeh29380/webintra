@@ -162,11 +162,6 @@
 
         const response = await request(url + "/setting/work_status", "POST", data, csrftoken);
 
-        if (!response.ok) {
-            alert('登録に失敗しました。' + '[ '+ response.status + ']' + '[ '+ response.statusText + ']')
-            throw new Error(`HTTP error: ${response.status}`);
-        }
-
         const newRow =
             '<tr> \
                 <td><button class="uk-button uk-button-danger uk-button-small" type="button">削除</button></td> \
@@ -236,12 +231,6 @@
         let id = h.parentElement.parentElement.querySelector('[name=id]').innerHTML;
         try {
             const response = await request(url + "/setting/work_status/" + id, "DELETE", {}, csrftoken);
-
-            if (!response.ok) {
-                alert('削除に失敗しました。' + '[ '+ response.status + ']' + '[ '+ response.statusText + ']')
-                throw new Error(`HTTP error: ${response.status}`);
-            }
-
             h.parentElement.parentElement.remove();
 
         } catch (error) {

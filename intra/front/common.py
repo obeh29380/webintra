@@ -4,6 +4,7 @@ import json
 import jpholiday
 
 from .consts import WEEKDAY
+from django.contrib.auth.models import User
 from .models import (
     UserSetting,
     Holiday,
@@ -26,10 +27,12 @@ def get_work_status_id(status):
             return i + 1
 
 
-def get_workStatus(date: datetime, user):
+def get_workStatus(date: datetime, user_id: int):
 
     # ユーザ毎の指定休日（初期値では土日）
-    regHoli = UserSetting.objects.get(userid=user)
+    user = User.objects.get(id=user_id)
+    # regHoli = UserSetting.objects.get(user_id=user)
+    regHoli = user.user_setting
 
     # Holidayは年月のみ管理で、年は2000固定なので変換して検索
     date_for_holiday = date.replace(year=2000)

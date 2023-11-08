@@ -1,0 +1,12 @@
+{% extends "front/base_account.html" %}
+
+{% block title %}エラーページ{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h1 class="my-5">エラーページ</h1>
+
+    ログインされていないか、セッションが有効期限切れです。
+    再度<a class="uk-link-text" href="/">ログイン</a>してください。
+</div>
+{% endblock %}

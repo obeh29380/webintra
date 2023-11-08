@@ -278,7 +278,7 @@ class SettingUserView(SettingBase):
         data = UserSetting.objects.all()
         rtn = list()
         for d in data:
-            user = model_to_dict(d.userid)
+            user = model_to_dict(d.user)
             rtn_d = model_to_dict(d)
             rtn_d['user'] = user
             rtn.append(rtn_d)
@@ -291,56 +291,6 @@ class SettingUserView(SettingBase):
             'protocol': url['protocol'],
         }
         return render(request, "front/setting_user.html", params)
-
-    def post(self, request):
-
-        # 更新処理
-        q = UserSetting.objects.all()
-        print('usersetting POST')
-
-        cnt = 0
-        for obj in q:
-
-            cnt += 1
-            userid = request.POST['userid_' + str(cnt)]
-            day_worktime = request.POST['day_worktime_' + str(cnt)]
-            rank = request.POST['rank_' + str(cnt)]
-            if 'regular_holiday_0_' + str(cnt) in request.POST:
-                mon = 1
-            else:
-                mon = 0
-            if 'regular_holiday_1_' + str(cnt) in request.POST:
-                tue = 1
-            else:
-                tue = 0
-            if 'regular_holiday_2_' + str(cnt) in request.POST:
-                wed = 1
-            else:
-                wed = 0
-            if 'regular_holiday_3_' + str(cnt) in request.POST:
-                thu = 1
-            else:
-                thu = 0
-            if 'regular_holiday_4_' + str(cnt) in request.POST:
-                fry = 1
-            else:
-                fry = 0
-            if 'regular_holiday_5_' + str(cnt) in request.POST:
-                sat = 1
-            else:
-                sat = 0
-            if 'regular_holiday_6_' + str(cnt) in request.POST:
-                sun = 1
-            else:
-                sun = 0
-
-            obj.userid = userid
-            obj.day_worktime = day_worktime
-            obj.rank = rank
-            obj.regular_holiday = {mon, tue, wed, thu, fry, sat, sun}
-            obj.save()
-
-        return HttpResponseRedirect(reverse_lazy('front:setting_user'))  # リダイレクト
 
 
 class SettingUserById(SettingBase):

@@ -75,7 +75,6 @@
         <tbody>
             {% for key, value in attend.items %}
             <form action="{% url 'front:attend_register_day' year month forloop.counter %}" method="POST">
-                {% csrf_token %}
                 {% if value.holiday %}
                 <tr class="uk-background-holiday" name="dayData">
                     {% else %}

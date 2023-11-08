@@ -2,6 +2,7 @@ import calendar
 import datetime
 import json
 from logging import getLogger
+from typing import Any
 
 from django.core.exceptions import PermissionDenied
 from django.db import transaction
@@ -63,21 +64,23 @@ def is_admin():
     return True
 
 
-def register_attendance_month(userid, year, month):
+def register_attendance_month(user_id, year, month):
 
     dayCnt = calendar.monthrange(year, month)[1]
 
     for i in range(dayCnt):
 
         date = make_aware(datetime.datetime(year, month, i+1))
-        work_status = get_workStatus(date, userid)
+        work_status = get_workStatus(date, user_id)
         if work_status['name']:
             sysmemo = '★' + work_status['name']
         else:
             sysmemo = ''
 
+        user = User.objects.get(id=user_id)
+
         b = Attendance(
-            userid=userid,
+            user=user,
             date=date,
             work_status=work_status['status'],
             work_start=date,
@@ -93,6 +96,20 @@ class BaseView(View):
         host = request.get_host()
         protocol = request.headers['Referer'].split(':')[0]
         return f'{protocol}://{host}'
+
+    def _is_valid_user(self, user_id):
+        """ユーザがログイン認証されているかどうかを判定する
+        """
+        user = User.objects.filter(id=user_id)
+        if user.count() == 0:
+            return False
+        return user[0].is_authenticated
+
+    def _is_permitted_function(self, user_id, permissions: list):
+        """ユーザが指定された機能の権限を持っているかを判定する
+        """
+        user = User.objects.get(id=user_id)
+        return user.get_user_permissions(permissions)
 
 class TopView(TemplateView):
     template_name = "front/top.html"
@@ -125,12 +142,17 @@ class ApprovalView(BaseView):
 
     def get(self, request):
 
+        if not self._is_valid_user(request.user.id):
+            return render(request, 'front/no_session.html', status=403)
+
+        user = User.objects.get(id=request.user.id)
         field = Approval._meta._get_fields()
         complete_status_min = 5
 
         # 未完了の決裁
         data = Approval.objects.filter(
-            userid=request.user.id, status__lt=complete_status_min).select_related('userid')
+            user=user, status__lt=complete_status_min
+            ).select_related('user')
         approval = {}
         for obj in data:
 
@@ -144,7 +166,7 @@ class ApprovalView(BaseView):
 
         # 完了済の決裁
         data_complete = Approval.objects.filter(
-            userid=request.user.id, status__gte=complete_status_min)
+            user=user, status__gte=complete_status_min)
         approval_complete = {}
         for obj in data_complete:
 
@@ -161,7 +183,7 @@ class ApprovalView(BaseView):
                                          }
 
         # 決裁ルートに自身がいて、かつ自身の決裁待ちであるデータを抽出
-        q = Approval_route.objects.filter(userid=request.user.id, status=2)
+        q = Approval_route.objects.filter(user=user, status=2)
         need_check = {}
         for obj in q:
             # need_check[obj.approval_id] = Approval.objects.get(
@@ -183,7 +205,7 @@ class ApprovalView(BaseView):
         return render(request, self.template_name, params)
 
 
-class NewApprovalView(View):
+class NewApprovalView(BaseView):
 
     def post(self, request, id, *args, **kwargs):
 
@@ -192,7 +214,7 @@ class NewApprovalView(View):
 
         with transaction.atomic():
             b = Approval(
-                userid=user,
+                user=user,
                 title=datas.get('title'),
                 detail=datas.get('detail'),
                 date=datetime.date.today(),
@@ -215,7 +237,7 @@ class NewApprovalView(View):
 
                 b = Approval_route(
                     approval=new_approval,
-                    userid=user,
+                    user=user,
                     status=status,
                 )
                 b.save()
@@ -223,16 +245,19 @@ class NewApprovalView(View):
         return JsonResponse({'reload': True})
 
 
-class Approval_checkView(View):
+class Approval_checkView(BaseView):
 
     def get(self, request, id, *args, **kwargs):
+
+        if not self._is_valid_user(request.user.id):
+            return render(request, 'front/no_session.html', status=403)
 
         data = Approval.objects.get(id=id)
         approval_route = data.related_route
         route = list()
         for r in approval_route.all():
             route.append(
-                dict(name=f'{r.userid.last_name}{r.userid.first_name}'))
+                dict(name=f'{r.user.last_name}{r.user.first_name}'))
         return JsonResponse({
             'data': model_to_dict(data),
             'route': route,
@@ -247,7 +272,7 @@ class Approval_checkView(View):
 
             target_approval = Approval.objects.get(id=id)
             target_approval_route = target_approval.related_route.get(
-                status=APPROVAL_STATUS_CODE.MYTURN.value, userid=user)
+                status=APPROVAL_STATUS_CODE.MYTURN.value, user=user)
 
             if status != 0:
                 target_approval_route.status = status
@@ -275,8 +300,11 @@ class Approval_checkView(View):
         return JsonResponse({'reload': True})
 
 
-class BoardView(View):
+class BoardView(BaseView):
     def get(self, request, *args, **kwargs):
+
+        if not self._is_valid_user(request.user.id):
+            return render(request, 'front/no_session.html', status=403)
 
         board_items = Board.objects.all()
 
@@ -301,9 +329,12 @@ class BoardView(View):
 
         return render(request, "front/board.html", params)
 
-class BoardCreateView(View):
+class BoardCreateView(BaseView):
 
     def get(self, request, *args, **kwargs):
+
+        if not self._is_valid_user(request.user.id):
+            return render(request, 'front/no_session.html', status=403)
 
         # data = Board.objects.all()
 
@@ -325,9 +356,12 @@ class BoardCreateView(View):
 
         return JsonResponse({'result': True})
 
-class Board_detailView(View):
+class Board_detailView(BaseView):
 
     def get(self, request, id, *args, **kwargs):
+
+        if not self._is_valid_user(request.user.id):
+            return render(request, 'front/no_session.html', status=403)
 
         data = Board.objects.get(id=id)
         board_comments = data.board_comments.all()
@@ -378,7 +412,7 @@ class Board_detailView(View):
         return JsonResponse({'result': True})
 
 
-class BoardComment(View):
+class BoardComment(BaseView):
 
     def post(self, request, id, *args, **kwargs):
         """ここで渡されるidは、Boardのid
@@ -414,7 +448,7 @@ class BoardComment(View):
         return JsonResponse({'result': True})
 
 
-class BoardGood(View):
+class BoardGood(BaseView):
 
     def post(self, request, id, *args, **kwargs):
         """ここで渡されるidは、Boardのid
@@ -444,8 +478,12 @@ class BoardGood(View):
     #     return JsonResponse({'result': True})
 
 
-class ToolsView(View):
+class ToolsView(BaseView):
     def get(self, request):
+
+        if not self._is_valid_user(request.user.id):
+            return render(request, 'front/no_session.html', status=403)
+
         params = {"page_tools": 1,
                   }
         return render(request, "front/tools.html", params)
@@ -461,21 +499,26 @@ class AttendView(BaseView):
 
     def get(self, request, year, month, *args, **kwargs):
 
+        if not self._is_valid_user(request.user.id):
+            return render(request, 'front/no_session.html', status=403)
+
         dayCnt = calendar.monthrange(year, month)[1]
 
         dayf = str(year)+"-"+str(month)+"-"+"01"
         dayl = str(year)+"-"+str(month)+"-"+str(dayCnt)
 
+        user = User.objects.get(id=request.user.id)
+
         q = Attendance.objects.filter(
-            userid=request.user, date__year=year, date__month=month)
+            user=user, date__year=year, date__month=month)
 
         if q.count() == 0:
             #  未登録の年月は、ひと月分まとめて登録する。
-            register_attendance_month(request.user, year, month)
+            register_attendance_month(request.user.id, year, month)
 
         d = Attendance.objects.filter(
-            userid=request.user, date__gte=dayf, date__lte=dayl)
-        userinfo = UserSetting.objects.get(userid=request.user)
+            user=user, date__gte=dayf, date__lte=dayl)
+        userinfo = UserSetting.objects.get(user=user)
         worktime = datetime.timedelta(hours=userinfo.day_worktime.hour, minutes=userinfo.day_worktime.minute)
 
         day = 0
@@ -529,8 +572,8 @@ class AttendView(BaseView):
         worktime_month_hour = int((worktime_month.total_seconds() / 60) // 60)
         worktime_month_minute = int(worktime_month.total_seconds() % (worktime_month.total_seconds() / 60))
         worktime_month_t = str(worktime_month_hour) + ':' + str(worktime_month_minute).rjust(2, '0')
+        
         params = {
-            'request': request,
             'year': year,
             'month': month,
             'workstatus': ws,
@@ -541,7 +584,6 @@ class AttendView(BaseView):
             'work_time_total': work_time_total,
             'work_day_total': work_day_total,
             'extra_hour_total': extra_hour_total,
-            'work_time': obj.work_time,
             'base_url': self._get_url_info(request),
             'car_fare_total': car_fare,
         }
@@ -554,18 +596,19 @@ class AttendView(BaseView):
         """
 
         
+        user = User.objects.get(id=request.user.id)
         day = int(request.POST.get('day', default=0))
 
         if day == 0:
             Attendance.objects.filter(
-                userid=request.user,
+                user=user,
                 date__year=year,
                 date__month=month
             ).delete()
 
         else:
             Attendance.objects.filter(
-                userid=request.user,
+                user=user,
                 date__year=year,
                 date__month=month,
                 date__day=day
@@ -574,85 +617,90 @@ class AttendView(BaseView):
         return JsonResponse({'result': True})
 
 
-def get_attendance_info(user_id, year, month):
-    """Attendanceテーブルの内容から、出勤簿の内容を返す
-    Array形式で、1日目、2日目・・・と各要素に１日分の情報をdictで含んでいる。
-    [{ 
-        'attend': obj,
-        'weekday': weekday,
-        'holiday': holiday,
-    }]
-    """
 
-    dayCnt = calendar.monthrange(year, month)[1]
-    date_from = str(year)+"-"+str(month)+"-"+"01"
-    date_to = str(year)+"-"+str(month)+"-"+str(dayCnt)
-
-    d = Attendance.objects.filter(
-        userid=user_id, date__gte=date_from, date__lte=date_to)
-
-    if d.count() == 0:
-        return None
-
-    workday_month = 0
-    attend_info = {}
-    work_time_total_t = datetime.timedelta(hours=0, minutes=0)
-    work_day_total = 0
-    extra_hour_total_t = datetime.timedelta(hours=0, minutes=0)
-
-    for obj in d:
-        weekday = WEEKDAYS[obj.date.weekday()]
-        work_time_total_t += datetime.timedelta(
-            hours=obj.work_time.hour, minutes=obj.work_time.minute)
-        extra_hour_total_t += datetime.timedelta(
-            hours=obj.work_overtime.hour, minutes=obj.work_overtime.minute)
-        if obj.work_time != datetime.time(0, 0, 0):
-            work_day_total += 1
-
-        work_status = get_workStatus(obj.date, request.user)
-        q = WorkStatus.objects.filter(
-            id=work_status['status'], holiday=True).count()
-
-        if q > 0:
-            holiday = 1
-        else:
-            holiday = 0
-            workday_month += 1
-
-        attend_info.append({'attend': obj,
-                        'weekday': weekday,
-                        'holiday': holiday,
-                        })
-
-    d, h, m, s = get_d_h_m_s(work_time_total_t)
-    work_time_total = {'hour': h+d*24,
-                        'minute': datetime.time(0, m)}
-
-    d, h, m, s = get_d_h_m_s(extra_hour_total_t)
-    extra_hour_total = {'hour': h+d*24,
-                        'minute': datetime.time(0, m)}
-
-    return {'attend_info': attend_info,
-            'work_time_total': work_time_total,
-            'extra_hour_total': extra_hour_total,
-            'workday_month': workday_month,
-            'work_day_total': work_day_total,
-            }
 
 def attend_info(request, *args, **kwargs) -> JsonResponse:
+
+    def _get_attendance_info(user_id, year, month):
+        """Attendanceテーブルの内容から、出勤簿の内容を返す
+        Array形式で、1日目、2日目・・・と各要素に１日分の情報をdictで含んでいる。
+        [{ 
+            'attend': obj,
+            'weekday': weekday,
+            'holiday': holiday,
+        }]
+        """
+
+        user = User.objects.get(id=request.user.id)
+
+        dayCnt = calendar.monthrange(year, month)[1]
+        date_from = str(year)+"-"+str(month)+"-"+"01"
+        date_to = str(year)+"-"+str(month)+"-"+str(dayCnt)
+
+        d = Attendance.objects.filter(
+            user=user, date__gte=date_from, date__lte=date_to)
+
+        if d.count() == 0:
+            return None
+
+        workday_month = 0
+        attend_info = {}
+        work_time_total_t = datetime.timedelta(hours=0, minutes=0)
+        work_day_total = 0
+        extra_hour_total_t = datetime.timedelta(hours=0, minutes=0)
+
+        for obj in d:
+            weekday = WEEKDAYS[obj.date.weekday()]
+            work_time_total_t += datetime.timedelta(
+                hours=obj.work_time.hour, minutes=obj.work_time.minute)
+            extra_hour_total_t += datetime.timedelta(
+                hours=obj.work_overtime.hour, minutes=obj.work_overtime.minute)
+            if obj.work_time != datetime.time(0, 0, 0):
+                work_day_total += 1
+
+            work_status = get_workStatus(obj.date, user_id)
+            q = WorkStatus.objects.filter(
+                id=work_status['status'], holiday=True).count()
+
+            if q > 0:
+                holiday = 1
+            else:
+                holiday = 0
+                workday_month += 1
+
+            attend_info.append({'attend': obj,
+                            'weekday': weekday,
+                            'holiday': holiday,
+                            })
+
+        d, h, m, s = get_d_h_m_s(work_time_total_t)
+        work_time_total = {'hour': h+d*24,
+                            'minute': datetime.time(0, m)}
+
+        d, h, m, s = get_d_h_m_s(extra_hour_total_t)
+        extra_hour_total = {'hour': h+d*24,
+                            'minute': datetime.time(0, m)}
+
+        return {'attend_info': attend_info,
+                'work_time_total': work_time_total,
+                'extra_hour_total': extra_hour_total,
+                'workday_month': workday_month,
+                'work_day_total': work_day_total,
+                }
 
     if request.user.is_anonymous:
         return JsonResponse(data=None)
 
+    user = User.objects.get(id=request.user.id)
     now = make_aware(datetime.datetime.now())
     month = int(request.GET.get("month", default=now.month))
     year = int(request.GET.get("year", default=now.year))
-    attend_infos = get_attendance_info(request.user, year, month)
+    attend_infos = _get_attendance_info(request.user.id, year, month)
 
     tmp = WorkStatus.objects.filter(use=True)
     work_status = list(tmp.values())
 
-    userinfo = UserSetting.objects.get(userid=request.user)
+    userinfo = UserSetting.objects.get(user=user)
     worktime = userinfo.day_worktime.hour
 
     params = {
@@ -671,7 +719,7 @@ def attend_info(request, *args, **kwargs) -> JsonResponse:
     return JsonResponse(data=params)
 
 
-class AttendRegisterDay(View):
+class AttendRegisterDay(BaseView):
 
     """attend/<int:year>/<int:month>/<int:day>" に対応する処理
     """
@@ -680,6 +728,7 @@ class AttendRegisterDay(View):
         """出勤簿の更新処理。URLに指定された日の出勤情報を更新する。
         """
 
+        user = User.objects.get(id=request.user.id)
         year = int(kwargs['year'])
         month = int(kwargs['month'])
         day = int(kwargs['day'])
@@ -708,7 +757,7 @@ class AttendRegisterDay(View):
             hours=workoff_v.hour, minutes=workoff_v.minute)
 
         # 規定労働時間
-        reg_work_time = UserSetting.objects.get(userid=request.user)
+        reg_work_time = UserSetting.objects.get(user=user)
 
         worktime_b = ed-st-workoff
         worktime_m, worktime_s = divmod(worktime_b.seconds, 60)
@@ -724,7 +773,7 @@ class AttendRegisterDay(View):
             overtime = datetime.time(
                 hour=y, minute=m, second=d)
 
-        attendance = Attendance.objects.get(userid=request.user, date=date)
+        attendance = Attendance.objects.get(user=user, date=date)
         attendance.work_status = work_status
         attendance.work_detail = work_detail
 
@@ -748,9 +797,12 @@ class AttendRegisterDay(View):
         return JsonResponse(data)
 
 
-class UserInfo(View):
+class UserInfo(BaseView):
 
     def get(self, request, *args, **kwargs):
+
+        if not self._is_valid_user(request.user.id):
+            return render(request, 'front/no_session.html', status=403)
 
         users = User.objects.filter(
             is_active=True)
@@ -768,7 +820,7 @@ class LoginView(LoginView):
     template_name = "front/index.html"
 
 
-class LogoutView(View):
+class LogoutView(BaseView):
     """ログアウト"""
     def get(self, request):
         return HttpResponseRedirect(reverse_lazy('front:top'))
@@ -790,11 +842,10 @@ class signup_Register(CreateView):
         with transaction.atomic():
             user = form.save()  # formの情報を保存
             login(self.request, user)  # 認証
-            self.object = user
 
             b = UserSetting(
-                userid=user,
+                user=user,
             )
             b.save()
 
-        return HttpResponseRedirect(self.get_success_url())  # リダイレクト
+        return HttpResponseRedirect(self.success_url)  # リダイレクト

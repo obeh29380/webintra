@@ -15,7 +15,7 @@
                 <thead>
                     <tr class="uk-text-center">
                         <th hidden="true" class="uk-width-btn-small"></th>
-                        <th class="uk-width-btn-small">名前</th>
+                        <th class="uk-width-1-5">名前</th>
                         <th class="uk-width-1-10">定時</th>
                         <th class="uk-width-btn-small">月</th>
                         <th class="uk-width-btn-small">火</th>
@@ -24,7 +24,7 @@
                         <th class="uk-width-btn-small">金</th>
                         <th class="uk-width-btn-small">土</th>
                         <th class="uk-width-btn-small">日</th>
-                        <th>ランク</th>
+                        <th class="uk-width-1-10">ランク</th>
                         <th class="uk-width-1-4">備考</th>
                     </tr>
                 </thead>
@@ -34,7 +34,7 @@
                         <td name="id" hidden="true">{{ item.id }}</td>
                         <td name="username">{{ item.user.last_name }}{{ item.user.first_name }}</td>
                         <td><input type="text" name="worktime" value="{{ item.day_worktime }}" class="uk-input"></td>
-                        <td>
+                        <td class="uk-padding-remove">
                             {%if item.mon_is_holiday == True %}
                             <button class="uk-button uk-button-default uk-button-small btn-onoff" name="btn-mon"
                                 type="button" on-text="休" off-text="勤">休</button>
@@ -43,7 +43,7 @@
                                 type="button" on-text="休" off-text="勤">勤</button>
                             {% endif %}
                         </td>
-                        <td>
+                        <td class="uk-padding-remove">
                             {%if item.tue_is_holiday == True %}
                             <button class="uk-button uk-button-default uk-button-small btn-onoff" name="btn-tue"
                                 type="button" on-text="休" off-text="勤">休</button>
@@ -52,7 +52,7 @@
                                 type="button" on-text="休" off-text="勤">勤</button>
                             {% endif %}
                         </td>
-                        <td>
+                        <td class="uk-padding-remove">
                             {%if item.wed_is_holiday == True %}
                             <button class="uk-button uk-button-default uk-button-small btn-onoff" name="btn-wed"
                                 type="button" on-text="休" off-text="勤">休</button>
@@ -61,7 +61,7 @@
                                 type="button" on-text="休" off-text="勤">勤</button>
                             {% endif %}
                         </td>
-                        <td>
+                        <td class="uk-padding-remove">
                             {%if item.thu_is_holiday == True %}
                             <button class="uk-button uk-button-default uk-button-small btn-onoff" name="btn-thu"
                                 type="button" on-text="休" off-text="勤">休</button>
@@ -70,7 +70,7 @@
                                 type="button" on-text="休" off-text="勤">勤</button>
                             {% endif %}
                         </td>
-                        <td>
+                        <td class="uk-padding-remove">
                             {%if item.fri_is_holiday == True %}
                             <button class="uk-button uk-button-default uk-button-small btn-onoff" name="btn-fri"
                                 type="button" on-text="休" off-text="勤">休</button>
@@ -79,7 +79,7 @@
                                 type="button" on-text="休" off-text="勤">勤</button>
                             {% endif %}
                         </td>
-                        <td>
+                        <td class="uk-padding-remove">
                             {%if item.sat_is_holiday == True %}
                             <button class="uk-button uk-button-default uk-button-small btn-onoff" name="btn-sat"
                                 type="button" on-text="休" off-text="勤">休</button>
@@ -88,7 +88,7 @@
                                 type="button" on-text="休" off-text="勤">勤</button>
                             {% endif %}
                         </td>
-                        <td>
+                        <td class="uk-padding-remove">
                             {%if item.sun_is_holiday == True %}
                             <button class="uk-button uk-button-default uk-button-small btn-onoff" name="btn-sun"
                                 type="button" on-text="休" off-text="勤">休</button>
@@ -97,9 +97,8 @@
                                 type="button" on-text="休" off-text="勤">勤</button>
                             {% endif %}
                         </td>
-                        <td name="rank">{{ item.rank }}</td>
-                        <td><input type="text" name="memo" value="{{item.memo}}" class="uk-input"></td>
-
+                        <td class="uk-padding-small"><input type="text" name="rank" value="{{item.rank}}" class="uk-input"></td>
+                        <td class="uk-padding-small"><input type="text" name="memo" value="{{item.memo}}" class="uk-input"></td>
                     </tr>
                     {% endfor %}
                     
@@ -141,7 +140,7 @@
         let fri = isHoliday(targetRow.querySelector('[name=btn-fri]').innerText);
         let sat = isHoliday(targetRow.querySelector('[name=btn-sat]').innerText);
         let sun = isHoliday(targetRow.querySelector('[name=btn-sun]').innerText);
-        let rank = targetRow.querySelector('[name=rank]').innerText;
+        let rank = targetRow.querySelector('[name=rank]').value;
         let memo = targetRow.querySelector('[name=memo]').value;
 
         const data = {

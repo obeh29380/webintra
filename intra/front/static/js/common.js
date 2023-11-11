@@ -46,10 +46,14 @@ let onoffHandler = function (event) {
     let h = event.target;
     let onText = h.getAttribute('on-text');
     let offText = h.getAttribute('off-text');
+    let onColor = h.getAttribute('on-color');
+    let offColor = h.getAttribute('off-color');
     if (h.textContent == onText) {
         h.textContent = offText;
+        h.style.background = offColor;
     } else {
         h.textContent = onText;
+        h.style.background = onColor;
     };
 };
 

@@ -42,11 +42,11 @@
                         </td>
                         <td>
                             {%if item.holiday == True %}
-                            <button class="uk-button uk-button-default uk-button-small btn-onoff" name="btn-holiday"
-                                type="button" on-text="休日" off-text="出勤">休日</button>
+                            <button class="uk-button uk-button-default uk-button-small btn-onoff" name="btn-holiday" style="background-color:#edc5ee5d;"
+                                type="button" on-text="休日" off-text="出勤" off-color="#ffffff" on-color="#edc5ee5d">休日</button>
                             {%else%}
                             <button class="uk-button uk-button-default uk-button-small btn-onoff" name="btn-holiday"
-                                type="button" on-text="休日" off-text="出勤">出勤</button>
+                                type="button" on-text="休日" off-text="出勤" off-color="#ffffff" on-color="#edc5ee5d">出勤</button>
                             {% endif %}
                         </td>
                         <td>
@@ -218,11 +218,6 @@
 
         console.log(url)
         const response = await request(url + "/setting/work_status/" + id, "POST", data, csrftoken);
-
-        if (!response.ok) {
-            alert('更新に失敗しました。' + '[ '+ response.status + ']' + '[ '+ response.statusText + ']')
-            throw new Error(`HTTP error: ${response.status}`);
-        }
     };
 
     // 削除処理

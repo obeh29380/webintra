@@ -138,11 +138,11 @@
                             {% endif %}
 
                             {% if route.status == 8 %}
-                            <button class="uk-label-danger" type="button">{{route.user.last_name}}{{route.user.first_name}}</button>
+                            <button route-id="{{route.id}}" approval-id="{{value.approval.id}}" name="routeDetail" class="uk-label-danger" type="button">{{route.user.last_name}}{{route.user.first_name}}</button>
                             {% elif route.status == 9 %}
-                            <button class="uk-label-success" type="button">{{route.user.last_name}}{{route.user.first_name}}</button>
+                            <button route-id="{{route.id}}" approval-id="{{value.approval.id}}" name="routeDetail" class="uk-label-success" type="button">{{route.user.last_name}}{{route.user.first_name}}</button>
                             {% else %}
-                            <button class="uk-label-clear" type="button">{{route.user.last_name}}{{route.user.first_name}}</button>
+                            <button route-id="{{route.id}}" approval-id="{{value.approval.id}}" name="routeDetail" class="uk-label-clear" type="button">{{route.user.last_name}}{{route.user.first_name}}</button>
                             {% endif %}
 
                             {% endfor %}
@@ -190,11 +190,16 @@
                     class="uk-textarea" rows="5"></textarea>
                 <div hidden=true class="uk-alert uk-alert-danger" id="alert-detail"></div>
 
-                <h3>ルート</h3>
-                <span class="uk-label uk-label-clear">開始</span>
+                <h3 id="title-comment">コメント</h3>
+                <textarea type="text" id="comment"
+                    class="uk-textarea" rows="5"></textarea>
+                <div hidden=true class="uk-alert uk-alert-danger" id="alert-comment"></div>
+
+                <h3 id="title-route">ルート</h3>
+                <span id="span-start" class="uk-label uk-label-clear">開始</span>
                 <div id="route">
                 </div>
-                <span class="uk-label uk-label-clear">終了</span>
+                <span id="span-finish" class="uk-label uk-label-clear">終了</span>
                 <div hidden=true id="selectUsers">
                 </div>
             </div>
@@ -241,8 +246,16 @@
             document.querySelector('#btnDeny').hidden = true;
             document.querySelector('#btnRegister').hidden = true;
 
+            document.querySelector('#title-comment').hidden = true;
+            document.querySelector('#comment').hidden = true;
+            document.querySelector('#comment').value = "";
+            document.querySelector('#comment').removeAttribute('disabled');
+            document.querySelector('#alert-comment').hidden = true;
             approvalId.innerHTML = "";
             selectUsers.hidden = true;
+            document.querySelector('#title-route').hidden = false;
+            document.querySelector('#span-start').hidden = false;
+            document.querySelector('#span-finish').hidden = false;
         };
 
         // 登録処理
@@ -313,11 +326,13 @@
                 document.querySelector('#btnDeny').hidden = false;
                 document.querySelector('#format-title').innerHTML = "決裁承認";
 
+                document.querySelector('#title-comment').hidden = false;
+                document.querySelector('#comment').hidden = false;
+                document.querySelector('#alert-comment').hidden = true;
+
                 data.route.forEach( function(r) {
                     let elemBtn = document.createElement("button");
                     elemBtn.innerHTML = r.name;
-                    console.log(r)
-                    console.log(r.name)
                     addUser2List(elemBtn);
                 });
             });
@@ -412,8 +427,10 @@
             } else if (e.target.id == 'btnDeny'){
                 status = 8;
             };
+            var comment = document.querySelector('#comment').value
             var data = {
-                status: status
+                status: status,
+                comment: comment
             }
             const response = request(url + "/approval/check/" + id, "POST", data, csrftoken)
             .then((data) => {
@@ -421,6 +438,38 @@
                     location.reload();
                 }
             });
+        };
+        function reviewDetail(e) {
+            let id = e.target.getAttribute('approval-id');
+            let routeId = e.target.getAttribute('route-id');
+            request(url + "/approval/check/" + id, "GET", {}, csrftoken)
+            .then((data) => {
+                let title = data.data.title;
+                let detail = data.data.detail;
+                document.querySelector('#title').value = title;
+                document.querySelector('#title').setAttribute('disabled', '');
+                document.querySelector('#detail').value = detail;
+                document.querySelector('#detail').setAttribute('disabled', '');
+                document.querySelector('#comment').setAttribute('disabled', '');
+                document.querySelector('#format-title').innerHTML = "決裁承認結果詳細";
+
+                data.route.forEach( function(r) {
+                    if (r.id != routeId) {
+                        return; //forEachではcontinueは使えない
+                    };
+                    document.querySelector('#comment').value = r.comment;
+                });
+                document.querySelector('#title-comment').hidden = false;
+                document.querySelector('#comment').hidden = false;
+                document.querySelector('#alert-comment').hidden = true;
+            });
+            document.querySelector('#btnApprove').hidden = true;
+            document.querySelector('#btnDeny').hidden = true;
+            document.querySelector('#title-route').hidden = true;
+            document.querySelector('#span-start').hidden = true;
+            document.querySelector('#span-finish').hidden = true;
+
+            UIkit.modal(document.querySelector('#modal-format')).show();
         };
         document.querySelectorAll('[name=btnCheck]').forEach(function (button) {
             button.addEventListener('click', checkDetail);
@@ -433,6 +482,9 @@
         document.querySelector('#btnApprove').addEventListener('click', updateStatus);
         document.querySelector('#btnRegister').addEventListener('click', register);
         document.querySelector('#modal-format').addEventListener('hidden', clearFormat);
+        document.querySelectorAll('[name=routeDetail]').forEach(function (button) {
+            button.addEventListener('click', reviewDetail);
+        });
         createUserList();
     </script>
     {% endblock %}

@@ -257,7 +257,9 @@ class Approval_checkView(BaseView):
         route = list()
         for r in approval_route.all():
             route.append(
-                dict(name=f'{r.user.last_name}{r.user.first_name}'))
+                dict(name=f'{r.user.last_name}{r.user.first_name}',
+                     comment=r.comment,
+                     id=r.id))
         return JsonResponse({
             'data': model_to_dict(data),
             'route': route,
@@ -269,6 +271,7 @@ class Approval_checkView(BaseView):
             datas = json.loads(request.body)
             user = User.objects.get(id=request.user.id)
             status = datas.get('status')
+            comment = datas.get('comment')
 
             target_approval = Approval.objects.get(id=id)
             target_approval_route = target_approval.related_route.get(
@@ -277,6 +280,7 @@ class Approval_checkView(BaseView):
             if status != 0:
                 target_approval_route.status = status
                 target_approval_route.approved_date = datetime.date.today()
+                target_approval_route.comment = comment
                 target_approval_route.save()
 
                 next_route = target_approval.related_route.filter(status=APPROVAL_STATUS_CODE.WAITMYTURN.value).order_by("id")

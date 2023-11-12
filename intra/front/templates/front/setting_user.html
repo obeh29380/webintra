@@ -15,24 +15,24 @@
                 <thead>
                     <tr class="uk-text-center">
                         <th hidden="true" class="uk-width-btn-small"></th>
-                        <th class="uk-width-1-5">名前</th>
-                        <th class="uk-width-1-10">定時</th>
-                        <th class="uk-width-btn-small">月</th>
-                        <th class="uk-width-btn-small">火</th>
-                        <th class="uk-width-btn-small">水</th>
-                        <th class="uk-width-btn-small">木</th>
-                        <th class="uk-width-btn-small">金</th>
-                        <th class="uk-width-btn-small">土</th>
-                        <th class="uk-width-btn-small">日</th>
-                        <th class="uk-width-1-10">ランク</th>
-                        <th class="uk-width-1-4">備考</th>
+                        <th class="uk-width-1-5 uk-text-center">名前</th>
+                        <th class="uk-width-1-10 uk-text-center">定時</th>
+                        <th class="uk-width-btn-small uk-text-center">月</th>
+                        <th class="uk-width-btn-small uk-text-center">火</th>
+                        <th class="uk-width-btn-small uk-text-center">水</th>
+                        <th class="uk-width-btn-small uk-text-center">木</th>
+                        <th class="uk-width-btn-small uk-text-center">金</th>
+                        <th class="uk-width-btn-small uk-text-center">土</th>
+                        <th class="uk-width-btn-small uk-text-center">日</th>
+                        <th class="uk-width-1-10 uk-text-center">ランク</th>
+                        <th class="uk-width-1-4 uk-text-center">備考</th>
                     </tr>
                 </thead>
                 <tbody id="registerd">
                     {% for item in data %}
                     <tr>
                         <td name="id" hidden="true">{{ item.id }}</td>
-                        <td name="username">{{ item.user.last_name }}{{ item.user.first_name }}</td>
+                        <td class="uk-text-center" name="username">{{ item.user.last_name }}{{ item.user.first_name }}</td>
                         <td><input type="text" name="worktime" value="{{ item.day_worktime }}" class="uk-input"></td>
                         <td class="uk-padding-remove">
                             {%if item.mon_is_holiday == True %}

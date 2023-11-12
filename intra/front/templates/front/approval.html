@@ -344,19 +344,19 @@
             let targetRow = e.target.parentElement.parentElement;
             let title = targetRow.querySelector('[data-name=title]').innerHTML;
 
-            let checkFlg = window.confirm('決裁:「' + title + '」を取り下げます。よろしいですか？');
-            if (!(checkFlg)){
+            UIkit.modal.confirm('決裁:「' + title + '」を取り下げます。よろしいですか？')
+            .then(function() {
+                let id = targetRow.querySelector('[data-name=id]').innerHTML;
+                let data = {
+                    status: 7
+                };
+                request(url + "/approval/check/" + id, "POST", data, csrftoken)
+                .then((data) => {
+                    location.reload();
+                });
+            }, function () {
                 return;
-            };
-            let id = targetRow.querySelector('[data-name=id]').innerHTML;
-            let data = {
-                status: 7
-            };
-            request(url + "/approval/check/" + id, "POST", data, csrftoken)
-            .then((data) => {
-                location.reload();
             });
-            
         };
 
         function createUserList() {

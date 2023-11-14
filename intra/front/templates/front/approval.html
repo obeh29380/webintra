@@ -170,7 +170,7 @@
 
             <div class="uk-modal-body" uk-overflow-auto>
 
-                <div uk-form-custom="target: > * > span:first-child">
+                <div id="format-div" uk-form-custom="target: > * > span:first-child">
                     <select id="format" aria-label="Custom controls">
                         <option value="">ひな形選択（オプション）</option>
                     </select>
@@ -245,6 +245,7 @@
             document.querySelector('#btnApprove').hidden = true;
             document.querySelector('#btnDeny').hidden = true;
             document.querySelector('#btnRegister').hidden = true;
+            document.querySelector('#format-div').hidden = false;
 
             document.querySelector('#title-comment').hidden = true;
             document.querySelector('#comment').hidden = true;
@@ -325,6 +326,7 @@
                 document.querySelector('#detail').setAttribute('disabled', '');
                 document.querySelector('#btnDeny').hidden = false;
                 document.querySelector('#format-title').innerHTML = "決裁承認";
+                document.querySelector('#format-div').hidden = true;
 
                 document.querySelector('#title-comment').hidden = false;
                 document.querySelector('#comment').hidden = false;
@@ -452,6 +454,7 @@
                 document.querySelector('#detail').setAttribute('disabled', '');
                 document.querySelector('#comment').setAttribute('disabled', '');
                 document.querySelector('#format-title').innerHTML = "決裁承認結果詳細";
+                document.querySelector('#format-div').hidden = true;
 
                 data.route.forEach( function(r) {
                     if (r.id != routeId) {

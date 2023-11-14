@@ -130,7 +130,16 @@ class HomeView(LoginRequiredMixin, TemplateView):
 
     def get(self, request):
 
-        params = {"message": "",
+        user = User.objects.get(id=request.user.id)
+
+        # 決裁ルートに自身がいて、かつ自身の決裁待ちであるデータを抽出
+        approval_routes = Approval_route.objects.filter(user=user, status=2)
+        need_check = {}
+        for approval_route in approval_routes:
+            need_check[approval_route.approval.id] = approval_route.approval
+
+        params = {'message': '',
+                  'need_check': need_check,
                   }
 
         return render(request, self.template_name, params)

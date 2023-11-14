@@ -29,8 +29,7 @@
                 <tbody id="MustCheck">
                     {% for key, value in need_check.items %}
                     <tr>
-                        <td><button class="uk-button uk-button-primary uk-button-small" name="btnCheck" \
-                                type="button">確認</button></td>
+                        <td><a class="uk-button uk-button-primary" name="btnCheck" href="#modal-format" uk-toggle>確認</a></td>
                         <td name="id" hidden="true">{{value.id}}</td>
                         <td>{{value.title}}</td>
                         <td>{{value.userid}}</td>
@@ -42,4 +41,115 @@
         </div>
     </div>
 </div>
+
+<!-- モーダルテンプレート -->
+<div id="modal-format" uk-modal bg-close=false>
+    <div class="uk-modal-dialog">
+
+        <button class="uk-modal-close-default" type="button" id="exitFormat" uk-close></button>
+
+        <div class="uk-modal-header">
+            <h2 class="uk-modal-title" id="format-title"></h2>
+        </div>
+
+        <div hidden=true id="approval-id"></div>
+
+        <div class="uk-modal-body" uk-overflow-auto>
+
+            <h3>名目</h3>
+            <input type="text" id="title"
+                class="uk-input">
+            
+            <h3>詳細</h3>
+            <textarea type="text" id="detail"
+                class="uk-textarea" rows="5"></textarea>
+
+            <h3 id="title-comment">コメント</h3>
+            <textarea type="text" id="comment"
+                class="uk-textarea" rows="5"></textarea>
+
+            <h3 id="title-route">ルート</h3>
+            <span id="span-start" class="uk-label uk-label-clear">開始</span>
+            <div id="route">
+            </div>
+            <span id="span-finish" class="uk-label uk-label-clear">終了</span>
+            <div id="selectUsers">
+            </div>
+        </div>
+
+        <div class="uk-modal-footer uk-text-center">
+            <button class="uk-button uk-button-danger" type="button" id="btnDeny">却下</button>
+            <button class="uk-button uk-button-primary" type="button" id="btnApprove">承認</button>
+        </div>
+
+    </div>
+</div>
+
+<script type="text/javascript">
+
+    const url = location.protocol + '//' + location.host;
+    const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+    const approvalId = document.querySelector('#approval-id')
+
+    function addUser2List(elemBtn) {
+        let elemDiv = document.createElement("div");
+        elemBtn.className = "uk-label";
+        elemBtn.type = "button";
+        route.insertBefore(elemDiv, null);
+        elemDiv.insertBefore(elemBtn, null);
+    };
+
+    function checkDetail(e) {
+        let targetRow = e.target.parentElement.parentElement;
+        let id = targetRow.querySelector('[name=id]').innerHTML;
+        approvalId.innerHTML = id;
+        request(url + "/approval/check/" + id, "GET", {}, csrftoken)
+        .then((data) => {
+            let title = data.data.title;
+            let detail = data.data.detail;
+            document.querySelector('#title').value = title;
+            document.querySelector('#title').setAttribute('disabled', '');
+            document.querySelector('#detail').value = detail;
+            document.querySelector('#detail').setAttribute('disabled', '');
+            document.querySelector('#format-title').innerHTML = "決裁承認";
+            document.querySelector('#format-div').hidden = true;
+
+            document.querySelector('#title-comment').hidden = false;
+            document.querySelector('#comment').hidden = false;
+
+            data.route.forEach( function(r) {
+                let elemBtn = document.createElement("button");
+                elemBtn.innerHTML = r.name;
+                addUser2List(elemBtn);
+            });
+        });
+    };
+
+    function updateStatus(e) {
+        var id = approvalId.innerHTML;
+        var status = 0;
+        if (e.target.id == 'btnApprove'){
+            status = 9;
+        } else if (e.target.id == 'btnDeny'){
+            status = 8;
+        };
+        var comment = document.querySelector('#comment').value
+        var data = {
+            status: status,
+            comment: comment
+        }
+        const response = request(url + "/approval/check/" + id, "POST", data, csrftoken)
+        .then((data) => {
+            if (data.reload) {
+                location.reload();
+            }
+        });
+    };
+
+    document.querySelectorAll('[name=btnCheck]').forEach(function (button) {
+        button.addEventListener('click', checkDetail);
+    });
+        document.querySelector('#btnDeny').addEventListener('click', updateStatus);
+        document.querySelector('#btnApprove').addEventListener('click', updateStatus);
+</script>
 {% endblock %}

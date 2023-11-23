@@ -67,7 +67,6 @@ urlpatterns = [
      path("setting/approval_format/<int:id>",
           views_settings.SettingApprovalFormatView.as_view(),
           name="setting_approval_format"),
-     path("test", views.exec_ajax, name='test'),
      path("userinfo",
           views.UserInfo.as_view(),
           name="user_info"),

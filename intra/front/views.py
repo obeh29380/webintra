@@ -72,10 +72,9 @@ def register_attendance_month(user_id, year, month):
 
         date = make_aware(datetime.datetime(year, month, i+1))
         work_status = get_workStatus(date, user_id)
+        sysmemo = ''
         if work_status['name']:
-            sysmemo = '★' + work_status['name']
-        else:
-            sysmemo = ''
+            sysmemo = f'★{work_status["name"]}'
 
         user = User.objects.get(id=user_id)
 
@@ -91,12 +90,6 @@ def register_attendance_month(user_id, year, month):
 
 class BaseView(View):
 
-    def _get_url_info(self, request):
-
-        host = request.get_host()
-        protocol = request.headers['Referer'].split(':')[0]
-        return f'{protocol}://{host}'
-
     def _is_valid_user(self, user_id):
         """ユーザがログイン認証されているかどうかを判定する
         """
@@ -111,22 +104,12 @@ class BaseView(View):
         user = User.objects.get(id=user_id)
         return user.get_user_permissions(permissions)
 
+
 class TopView(TemplateView):
     template_name = "front/top.html"
 
-def exec_ajax(request):
-    if request.method == 'GET':  # GETの処理
-        param1 = request.GET.get("param1")  # GETパラメータ1
-        param2 = request.GET.get("param2")  # GETパラメータ2
-        param3 = request.GET.get("param3")  # GETパラメータ3
-        return HttpResponse(param1 + param2 + param3)
-    elif request.method == 'POST':  # POSTの処理
-        data1 = request.POST.get("input_data")  # POSTで渡された値
-        return HttpResponse(data1)
 
 class HomeView(LoginRequiredMixin, TemplateView):
-
-    template_name = 'front/home.html'
 
     def get(self, request):
 
@@ -142,12 +125,10 @@ class HomeView(LoginRequiredMixin, TemplateView):
                   'need_check': need_check,
                   }
 
-        return render(request, self.template_name, params)
+        return render(request, 'front/home.html', params)
 
 
 class ApprovalView(BaseView):
-
-    template_name = 'front/approval.html'
 
     def get(self, request):
 
@@ -178,8 +159,6 @@ class ApprovalView(BaseView):
             user=user, status__gte=complete_status_min)
         approval_complete = {}
         for obj in data_complete:
-
-            # q = Approval_route.objects.filter(approval_id=obj.id)
             status = MAP_APPROVAL_STATUS[obj.status]
 
             # なぜかdateだけmodel_to_dictのとき抜け落ちるので、自分で入れる（多分migrateで関連付けが失敗してる）
@@ -195,23 +174,20 @@ class ApprovalView(BaseView):
         q = Approval_route.objects.filter(user=user, status=2)
         need_check = {}
         for obj in q:
-            # need_check[obj.approval_id] = Approval.objects.get(
-            #     id=obj.approval_id)
             need_check[obj.approval.id] = obj.approval
 
+        params = {
+            'message': '一覧',
+            'data': data,
+            'field': field,
+            'user': request.user,
+            'approval': approval,
+            'approval_complete': approval_complete,
+            'page_approval': 1,
+            'need_check': need_check,
+        }
 
-        params = {'message': '一覧',
-                  'data': data,
-                  'field': field,
-                  'user': request.user,
-                  'approval': approval,
-                  'approval_complete': approval_complete,
-                  'page_approval': 1,
-                  'need_check': need_check,
-                  'base_url': self._get_url_info(request)
-                  }
-
-        return render(request, self.template_name, params)
+        return render(request, 'front/approval.html', params)
 
 
 class NewApprovalView(BaseView):
@@ -302,10 +278,6 @@ class Approval_checkView(BaseView):
                     target_approval.save()
                 else:
                     # 次の人の承認ステータスも承認待ちに更新
-                    # これは更新されない（なぜ？）
-                    # next_route[0].status = APPROVAL_STATUS_CODE['MYTURN']
-                    # next_route[0].save()
-
                     target_next_route = Approval_route.objects.get(id=next_route[0].id)
                     target_next_route.status = APPROVAL_STATUS_CODE.MYTURN.value
                     target_next_route.save()
@@ -334,11 +306,12 @@ class BoardView(BaseView):
             board['comment_count'] = len(board_comments)
             datas.append(board)
 
-        params = {'title': '掲示板一覧',
-                  'datas': datas,
-                  'user': request.user,
-                  'page_board': 1,
-                  }
+        params = {
+            'title': '掲示板一覧',
+            'datas': datas,
+            'user': request.user,
+            'page_board': 1,
+        }
 
         return render(request, "front/board.html", params)
 
@@ -349,10 +322,8 @@ class BoardCreateView(BaseView):
         if not self._is_valid_user(request.user.id):
             return render(request, 'front/no_session.html', status=403)
 
-        # data = Board.objects.all()
-
-        params = {'title': '掲示板作成',
-                  }
+        params = {
+        }
 
         return render(request, "front/board_detail.html", params)
 
@@ -366,7 +337,6 @@ class BoardCreateView(BaseView):
             user=user,
         )
         b.save()
-
         return JsonResponse({'result': True})
 
 class Board_detailView(BaseView):
@@ -378,7 +348,6 @@ class Board_detailView(BaseView):
 
         data = Board.objects.get(id=id)
         board_comments = data.board_comments.all()
-        comments = [c.to_dict() for c in board_comments]
 
         comments = list()
         for comment in board_comments:
@@ -564,10 +533,11 @@ class AttendView(BaseView):
             if not is_holiday:
                 workday_month += 1
 
-            attend[day] = {'attend': obj,
-                           'weekday': weekday,
-                           'holiday': is_holiday,
-                           }
+            attend[day] = {
+                'attend': obj,
+                'weekday': weekday,
+                'holiday': is_holiday,
+            }
 
         tmp = WorkStatus.objects.filter(use=True)
         ws = list(tmp.values())
@@ -597,7 +567,6 @@ class AttendView(BaseView):
             'work_time_total': work_time_total,
             'work_day_total': work_day_total,
             'extra_hour_total': extra_hour_total,
-            'base_url': self._get_url_info(request),
             'car_fare_total': car_fare,
         }
 
@@ -628,8 +597,6 @@ class AttendView(BaseView):
             ).delete()
 
         return JsonResponse({'result': True})
-
-
 
 
 def attend_info(request, *args, **kwargs) -> JsonResponse:
@@ -681,25 +648,31 @@ def attend_info(request, *args, **kwargs) -> JsonResponse:
                 holiday = 0
                 workday_month += 1
 
-            attend_info.append({'attend': obj,
-                            'weekday': weekday,
-                            'holiday': holiday,
-                            })
+            attend_info.append(
+                {
+                    'attend': obj,
+                    'weekday': weekday,
+                    'holiday': holiday,
+                }
+            )
 
         d, h, m, s = get_d_h_m_s(work_time_total_t)
-        work_time_total = {'hour': h+d*24,
-                            'minute': datetime.time(0, m)}
+        work_time_total = {
+            'hour': h+d*24,
+            'minute': datetime.time(0, m)}
 
         d, h, m, s = get_d_h_m_s(extra_hour_total_t)
-        extra_hour_total = {'hour': h+d*24,
-                            'minute': datetime.time(0, m)}
+        extra_hour_total = {
+            'hour': h+d*24,
+            'minute': datetime.time(0, m)}
 
-        return {'attend_info': attend_info,
-                'work_time_total': work_time_total,
-                'extra_hour_total': extra_hour_total,
-                'workday_month': workday_month,
-                'work_day_total': work_day_total,
-                }
+        return {
+            'attend_info': attend_info,
+            'work_time_total': work_time_total,
+            'extra_hour_total': extra_hour_total,
+            'workday_month': workday_month,
+            'work_day_total': work_day_total,
+        }
 
     if request.user.is_anonymous:
         return JsonResponse(data=None)
